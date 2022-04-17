@@ -10,7 +10,7 @@ Dart/Flutter:
 
 * Lets you create BDD tests in code.
 * Gives you easy to read error messages when assertions fail.
-* Exports to Gherkin/Cucumber `.feature` files.
+* Exports to Gherkin/Cucumber `.feature` files (optional).
 * Does not need generated code to work.
 
 <br>
@@ -27,12 +27,12 @@ Bdd(feature)
    //
    .given('The user has 120 dollars.')
    .and('IBM share has bid-price 3 dollars, ask-price 10 dollars.')
-   .and("Fees are zero.")
+   .and('Fees are zero.')
    //
-   .when("The user opens the order-form.")
+   .when('The user opens the order-form.')
    //
-   .then("The buying amount is 12 shares.")
-   .and("costing 120 dollars.")
+   .then('The buying amount is 12 shares.')
+   .and('It costs 120 dollars.')
    //      
    .run((ctx) async {
        

@@ -23,13 +23,13 @@ You create your BDD tests in code, not in `.feature` files. For example:
 var feature = BddFeature('Buying amount');
 
 Bdd(feature)
-   .scenario('Buying amount for share based orders, zero fees.')
+   .scenario('Buying amount for stock orders, with zero fees.')
    //
    .given('The user has 120 dollars.')
-   .and('IBM share has bid-price 3 dollars, ask-price 10 dollars.')
+   .and('IBM bid-price is 3 dollars, ask-price is 10.')
    .and('Fees are zero.')
    //
-   .when('The user opens the order-form.')
+   .when('The user opens the order.')
    //
    .then('The buying amount is 12 shares.')
    .and('It costs 120 dollars.')
@@ -38,15 +38,15 @@ Bdd(feature)
        
        // Given:
        setCashBalance(120);         
-       setSnapQuote(IBM, bidPrice: 3, askPrice: 10);
+       setQuote(IBM, bid: 3, ask: 10);
        setFees(0);         
     
        // When:
-       var result = calculateOrderForm(IBM);
+       var buyingAmount = openOrder(IBM);
          
        // Then:
-       expect(result.shares, 12);         
-       expect(result.dollars, 120);
+       expect(buyingAmount.shares, 12);         
+       expect(buyingAmount.dollars, 120);
    });
 ```
 

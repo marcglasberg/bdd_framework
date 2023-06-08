@@ -11,8 +11,6 @@ import "package:meta/meta.dart";
 
 import 'bdd_context.dart';
 
-// //////////////////////////////////////////////////////////////////////////////////////////////////
-
 /// This interface helps you format values in Examples and Tables.
 /// If a value implements the [BddDescribe] interface, or if it has a
 /// [describe] method, it will be used to format the value.
@@ -20,38 +18,33 @@ abstract class BddDescribe {
   Object? describe();
 }
 
-// //////////////////////////////////////////////////////////////////////////////////////////////////
-
 @isTest
 BddFramework Bdd([BddFeature? feature]) => BddFramework(feature);
-
-// //////////////////////////////////////////////////////////////////////////////////////////////////
 
 class row {
   final List<val> values;
 
-  row(val v1,
-      [val? v2,
-      val? v3,
-      val? v4,
-      val? v5,
-      val? v6,
-      val? v7,
-      val? v8,
-      val? v9,
-      val? v10,
-      val? v11,
-      val? v12,
-      val? v13,
-      val? v14,
-      val? v15,
-      val? v16])
-      : values = [v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16]
+  row(
+    val v1, [
+    val? v2,
+    val? v3,
+    val? v4,
+    val? v5,
+    val? v6,
+    val? v7,
+    val? v8,
+    val? v9,
+    val? v10,
+    val? v11,
+    val? v12,
+    val? v13,
+    val? v14,
+    val? v15,
+    val? v16,
+  ]) : values = [v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16]
             .whereNotNull()
             .toList();
 }
-
-// //////////////////////////////////////////////////////////////////////////////////////////////////
 
 class val {
   late String name;
@@ -86,8 +79,6 @@ class val {
     }
   }
 }
-
-// //////////////////////////////////////////////////////////////////////////////////////////////////
 
 class BddKeywords {
   //
@@ -133,8 +124,6 @@ class BddKeywords {
       examples,
       table;
 }
-
-// //////////////////////////////////////////////////////////////////////////////////////////////////
 
 class BddConfig {
   static const _default = BddConfig();
@@ -187,8 +176,6 @@ class BddConfig {
   String get spaces => padChar * indent;
 }
 
-// //////////////////////////////////////////////////////////////////////////////////////////////////
-
 abstract class _BaseTerm {
   final BddFramework bdd;
 
@@ -197,11 +184,7 @@ abstract class _BaseTerm {
   }
 }
 
-// //////////////////////////////////////////////////////////////////////////////////////////////////
-
 enum _Variation { term, and, but, note }
-
-// //////////////////////////////////////////////////////////////////////////////////////////////////
 
 abstract class BddTerm extends _BaseTerm {
   //
@@ -318,15 +301,11 @@ abstract class BddTerm extends _BaseTerm {
       suffix(config);
 }
 
-// //////////////////////////////////////////////////////////////////////////////////////////////////
-
 abstract class BddCodeTerm extends _BaseTerm {
   final CodeRun codeRun;
 
   BddCodeTerm(BddFramework bdd, this.codeRun) : super(bdd);
 }
-
-// //////////////////////////////////////////////////////////////////////////////////////////////////
 
 class BddFramework {
   //
@@ -434,8 +413,6 @@ class BddFramework {
       config.endOfLineChar;
 }
 
-// //////////////////////////////////////////////////////////////////////////////////////////////////
-
 class BddScenario extends BddTerm {
   BddScenario(BddFramework bdd, String text) : super(bdd, text, _Variation.term);
 
@@ -477,8 +454,6 @@ class BddScenario extends BddTerm {
   // ignore: unnecessary_overrides
   String toString([BddConfig config = BddConfig._default]) => super.toString(config);
 }
-
-// //////////////////////////////////////////////////////////////////////////////////////////////////
 
 class BddGiven extends BddTerm {
   BddGiven(BddFramework bdd, String text) : super(bdd, text, _Variation.term);
@@ -547,8 +522,6 @@ class BddGiven extends BddTerm {
   String toString([BddConfig config = BddConfig._default]) => super.toString(config);
 }
 
-// //////////////////////////////////////////////////////////////////////////////////////////////////
-
 class _GivenCode extends BddCodeTerm {
   _GivenCode(BddFramework bdd, CodeRun code) : super(bdd, code);
 
@@ -568,8 +541,6 @@ class _GivenCode extends BddCodeTerm {
 
   _GivenCode code(CodeRun code) => _GivenCode(bdd, code);
 }
-
-// //////////////////////////////////////////////////////////////////////////////////////////////////
 
 class BddWhen extends BddTerm {
   BddWhen(BddFramework bdd, String text) : super(bdd, text, _Variation.term);
@@ -619,8 +590,6 @@ class BddWhen extends BddTerm {
   String toString([BddConfig config = BddConfig._default]) => super.toString(config);
 }
 
-// //////////////////////////////////////////////////////////////////////////////////////////////////
-
 class _WhenCode extends BddCodeTerm {
   _WhenCode(BddFramework bdd, CodeRun code) : super(bdd, code);
 
@@ -640,8 +609,6 @@ class _WhenCode extends BddCodeTerm {
 
   _WhenCode code(CodeRun code) => _WhenCode(bdd, code);
 }
-
-// //////////////////////////////////////////////////////////////////////////////////////////////////
 
 class BddThen extends BddTerm {
   BddThen(BddFramework bdd, String text) : super(bdd, text, _Variation.term);
@@ -680,21 +647,23 @@ class BddThen extends BddTerm {
 
   BddThen note(String text) => BddThen._(bdd, text, _Variation.note);
 
-  BddExample example(val v1,
-          [val? v2,
-          val? v3,
-          val? v4,
-          val? v5,
-          val? v6,
-          val? v7,
-          val? v8,
-          val? v9,
-          val? v10,
-          val? v11,
-          val? v12,
-          val? v13,
-          val? v14,
-          val? v15]) =>
+  BddExample example(
+    val v1, [
+    val? v2,
+    val? v3,
+    val? v4,
+    val? v5,
+    val? v6,
+    val? v7,
+    val? v8,
+    val? v9,
+    val? v10,
+    val? v11,
+    val? v12,
+    val? v13,
+    val? v14,
+    val? v15,
+  ]) =>
       BddExample(bdd, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15);
 
   _ThenCode code(CodeRun code) => _ThenCode(bdd, code);
@@ -712,8 +681,6 @@ class BddThen extends BddTerm {
   String toString([BddConfig config = BddConfig._default]) => super.toString(config);
 }
 
-// //////////////////////////////////////////////////////////////////////////////////////////////////
-
 class _ThenCode extends BddCodeTerm {
   _ThenCode(BddFramework bdd, CodeRun code) : super(bdd, code);
 
@@ -723,21 +690,23 @@ class _ThenCode extends BddCodeTerm {
   BddThenTable table(String tableName, row row1, [row? row2, row? row3, row? row4]) =>
       BddThenTable(bdd, tableName, row1, row2, row3, row4);
 
-  BddExample example(val v1,
-          [val? v2,
-          val? v3,
-          val? v4,
-          val? v5,
-          val? v6,
-          val? v7,
-          val? v8,
-          val? v9,
-          val? v10,
-          val? v11,
-          val? v12,
-          val? v13,
-          val? v14,
-          val? v15]) =>
+  BddExample example(
+    val v1, [
+    val? v2,
+    val? v3,
+    val? v4,
+    val? v5,
+    val? v6,
+    val? v7,
+    val? v8,
+    val? v9,
+    val? v10,
+    val? v11,
+    val? v12,
+    val? v13,
+    val? v14,
+    val? v15,
+  ]) =>
       BddExample(bdd, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15);
 
   BddWhen and(String text) => BddWhen._(bdd, text, _Variation.and);
@@ -756,8 +725,6 @@ class _ThenCode extends BddCodeTerm {
     return bdd;
   }
 }
-
-// //////////////////////////////////////////////////////////////////////////////////////////////////
 
 abstract class BddTableTerm extends BddTerm {
   //
@@ -848,8 +815,6 @@ abstract class BddTableTerm extends BddTerm {
       formatTable(config) +
       suffix(config);
 }
-
-// //////////////////////////////////////////////////////////////////////////////////////////////////
 
 class BddExample extends BddTerm {
   //
@@ -964,21 +929,23 @@ class BddExample extends BddTerm {
   @override
   String suffix(BddConfig config) => _suffixVariation(config) ?? config.suffix.examples;
 
-  BddExample example(val v1,
-      [val? v2,
-      val? v3,
-      val? v4,
-      val? v5,
-      val? v6,
-      val? v7,
-      val? v8,
-      val? v9,
-      val? v10,
-      val? v11,
-      val? v12,
-      val? v13,
-      val? v14,
-      val? v15]) {
+  BddExample example(
+    val v1, [
+    val? v2,
+    val? v3,
+    val? v4,
+    val? v5,
+    val? v6,
+    val? v7,
+    val? v8,
+    val? v9,
+    val? v10,
+    val? v11,
+    val? v12,
+    val? v13,
+    val? v14,
+    val? v15,
+  ]) {
     rows.add(
         [v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15].whereNotNull().toSet());
     return this;
@@ -1003,8 +970,6 @@ class BddExample extends BddTerm {
       formatExampleTable(config) +
       suffix(config);
 }
-
-// //////////////////////////////////////////////////////////////////////////////////////////////////
 
 class BddGivenTable extends BddTableTerm {
   //
@@ -1063,8 +1028,6 @@ class BddGivenTable extends BddTableTerm {
   String toString([BddConfig config = BddConfig._default]) => super.toString(config);
 }
 
-// //////////////////////////////////////////////////////////////////////////////////////////////////
-
 class BddWhenTable extends BddTableTerm {
   //
   BddWhenTable(BddFramework bdd, String tableName, row row1, [row? row2, row? row3, row? row4])
@@ -1087,8 +1050,6 @@ class BddWhenTable extends BddTableTerm {
   String toString([BddConfig config = BddConfig._default]) => super.toString(config);
 }
 
-// //////////////////////////////////////////////////////////////////////////////////////////////////
-
 class BddThenTable extends BddTableTerm {
   //
   BddThenTable(BddFramework bdd, String tableName, row row1, [row? row2, row? row3, row? row4])
@@ -1102,21 +1063,23 @@ class BddThenTable extends BddTableTerm {
 
   BddThen note(String text) => BddThen._(bdd, text, _Variation.note);
 
-  BddExample example(val v1,
-          [val? v2,
-          val? v3,
-          val? v4,
-          val? v5,
-          val? v6,
-          val? v7,
-          val? v8,
-          val? v9,
-          val? v10,
-          val? v11,
-          val? v12,
-          val? v13,
-          val? v14,
-          val? v15]) =>
+  BddExample example(
+    val v1, [
+    val? v2,
+    val? v3,
+    val? v4,
+    val? v5,
+    val? v6,
+    val? v7,
+    val? v8,
+    val? v9,
+    val? v10,
+    val? v11,
+    val? v12,
+    val? v13,
+    val? v14,
+    val? v15,
+  ]) =>
       BddExample(bdd, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15);
 
   _ThenCode code(CodeRun code) => _ThenCode(bdd, code);
@@ -1134,8 +1097,6 @@ class BddThenTable extends BddTableTerm {
     return bdd;
   }
 }
-
-// //////////////////////////////////////////////////////////////////////////////////////////////////
 
 class TestResult {
   final BddFramework _bdd;
@@ -1161,8 +1122,6 @@ class TestResult {
   ///
   List<bool> get passed => _bdd.passed;
 }
-
-// //////////////////////////////////////////////////////////////////////////////////////////////////
 
 class BddFeature {
   final String title;
@@ -1217,8 +1176,6 @@ class BddFeature {
   @override
   int get hashCode => title.hashCode;
 }
-
-// //////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Example:
 ///
@@ -1300,8 +1257,6 @@ abstract class BddReporter {
           onMatch: (m) => m[0] == ' ' ? '_' : '', onNonMatch: (m) => m.toLowerCase());
 }
 
-// //////////////////////////////////////////////////////////////////////////////////////////////////
-
 class TestRunConfig {
   final String? testOn;
   final Timeout? timeout;
@@ -1311,8 +1266,6 @@ class TestRunConfig {
 
   TestRunConfig({this.testOn, this.timeout, this.tags, this.onPlatform, this.retry});
 }
-
-// //////////////////////////////////////////////////////////////////////////////////////////////////
 
 class _RunInfo {
   int totalTestCount = 0;
@@ -1324,11 +1277,7 @@ class _RunInfo {
   bool overflowIsSetUp = false;
 }
 
-// //////////////////////////////////////////////////////////////////////////////////////////////////
-
 typedef CodeRun = FutureOr<void> Function(BddContext ctx)?;
-
-// //////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// This will run with the global reporter/runInfo.
 class _Run {
@@ -1507,8 +1456,6 @@ class _Run {
       grey + "\n⚠ ${italic}TEST $testNumberStr FAILED!\n" + italicOff;
 }
 
-// //////////////////////////////////////////////////////////////////////////////////////////////////
-
 /// This is for testing the BDD framework only.
 class _TestRun {
   final CodeRun code;
@@ -1554,8 +1501,6 @@ class _TestRun {
   }
 }
 
-// //////////////////////////////////////////////////////////////////////////////////////////////////
-
 /// Overrides `FlutterError.onError` defined by `TestWidgetsFlutterBinding._runTest()`,
 /// so that overflow errors are only printed to the console, and not considered test failures.
 ///
@@ -1586,8 +1531,6 @@ void _ignoreOverflowErrors() {
       handlerOriginal!(details);
   };
 }
-
-// //////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// During the binding process that happens inside the `testWidgets()` function,
 /// the `BindingBase.initServiceExtensions()` method determines, based on the

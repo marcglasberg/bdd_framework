@@ -2,7 +2,7 @@ import 'package:bdd_framework/bdd_framework.dart';
 import "package:flutter_test/flutter_test.dart";
 
 void main() {
-  ////////////////////////////////////////////////////////////////////////////////////////////////
+  
 
   var defaultBdd = () => Bdd(BddFeature('F', description: '123\n456'))
       .scenario('a')
@@ -30,7 +30,7 @@ void main() {
         val('name', 'Zaher'),
       );
 
-  ////////////////////////////////////////////////////////////////////////////////////////////////
+  
 
   test('Running code, once.', () {
     //
@@ -73,7 +73,7 @@ void main() {
     expect(reporter.features.first.testResults.first.passed, [true]);
   });
 
-  ////////////////////////////////////////////////////////////////////////////////////////////////
+  
 
   test('Running code, with examples.', () {
     //
@@ -172,7 +172,7 @@ void main() {
     expect(reporter.features.first.testResults.first.passed, [false, true, false]);
   });
 
-  ////////////////////////////////////////////////////////////////////////////////////////////////
+  
 
   test('Getting table values.', () {
     //
@@ -296,7 +296,7 @@ void main() {
     expect(() => result[0].row(10).val('xyz'), throwsAssertionError);
   });
 
-  ////////////////////////////////////////////////////////////////////////////////////////////////
+  
 
   test('If two features have the same title, they are the same feature.', () {
     //
@@ -322,7 +322,7 @@ void main() {
     expect(reporter.features.last.bdds, [bdd3]);
   });
 
-  ////////////////////////////////////////////////////////////////////////////////////////////////
+  
 
   test('Basic report formatting.', () {
     //
@@ -354,7 +354,7 @@ void main() {
         '......| 190     | abcd     | Zaher |\n');
   });
 
-  ////////////////////////////////////////////////////////////////////////////////////////////////
+  
 
   test('Configuring the reporter.', () {
     //
@@ -388,7 +388,7 @@ void main() {
         '......<b>|</b> 190     <b>|</b> abcd     <b>|</b> Zaher <b>|</b><br>\n');
   });
 
-  ////////////////////////////////////////////////////////////////////////////////////////////////
+  
 
   test('Right align keywords.', () {
     //
@@ -421,7 +421,7 @@ void main() {
         '..........|_190_____|_abcd_____|_Zaher_|\n');
   });
 
-  ////////////////////////////////////////////////////////////////////////////////////////////////
+  
 
   test('Test formatters.', () {
     //
@@ -473,7 +473,7 @@ void main() {
         '');
   });
 
-  ////////////////////////////////////////////////////////////////////////////////////////////////
+  
 
   test('Keywords, Prefixes and Suffixes.', () {
     //
@@ -584,7 +584,7 @@ void main() {
         '');
   });
 
-  ////////////////////////////////////////////////////////////////////////////////////////////////
+  
 
   test('Normalize filename.', () {
     //
@@ -596,10 +596,10 @@ void main() {
     expect(reporter.normalizeFileName("A&B#C^D+E/F\\G\$"), "abcdefg");
   });
 
-  ////////////////////////////////////////////////////////////////////////////////////////////////
+  
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 class _TestBddReporter extends BddReporter {
   //
@@ -626,7 +626,7 @@ class _TestBddReporter extends BddReporter {
   }
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 class _TestClass1 {
   @override
@@ -656,4 +656,4 @@ class _TestClass4 implements BddDescribe {
 
 Object? _transformDescribe(Object? obj) => obj is _TestClass2 ? 'by transformDescribe' : null;
 
-////////////////////////////////////////////////////////////////////////////////////////////////
+

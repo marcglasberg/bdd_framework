@@ -12,7 +12,6 @@ void main() {
       .given('The user has 120 dollars of cash-balance.')
       .and('IBM price is 30 dollars.')
       .and('The user has no IBM stocks.')
-
       //
       .when('The user buys 1 IBM.')
       //

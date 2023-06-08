@@ -2,8 +2,6 @@ import 'package:flutter/foundation.dart';
 
 import 'bdd_base.dart' as bdd_framework show val, BddTableTerm;
 
-// //////////////////////////////////////////////////////////////////////////////////////////////////
-
 class BddContext {
   final BddTableValues example;
 
@@ -24,8 +22,6 @@ class BddContext {
   @override
   int get hashCode => example.hashCode ^ _table.hashCode;
 }
-
-// //////////////////////////////////////////////////////////////////////////////////////////////////
 
 class BddTableRows {
   final List<BddTableValues> _values;
@@ -71,8 +67,6 @@ class BddTableRows {
   int get hashCode => _values.hashCode;
 }
 
-// //////////////////////////////////////////////////////////////////////////////////////////////////
-
 class BddMultipleTableValues {
   final Map<String, List<BddTableValues>> _tables;
 
@@ -81,7 +75,8 @@ class BddMultipleTableValues {
   factory BddMultipleTableValues.from(List<bdd_framework.BddTableTerm> tableTerms) {
     Map<String, List<BddTableValues>> _tables = {};
     for (bdd_framework.BddTableTerm _table in tableTerms) {
-      List<BddTableValues> tableValues = _table.rows.map((r) => BddTableValues.from(r.values)).toList();
+      List<BddTableValues> tableValues =
+          _table.rows.map((r) => BddTableValues.from(r.values)).toList();
 
       _tables[_table.tableName] = tableValues;
     }
@@ -107,8 +102,6 @@ class BddMultipleTableValues {
   @override
   int get hashCode => _tables.hashCode;
 }
-
-// //////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// The example values are encapsulated as a [BddTableValues] object to be used by the code runs.
 /// In other words, the test code may read the example values from this.
@@ -141,5 +134,3 @@ class BddTableValues {
   @override
   int get hashCode => _map.hashCode;
 }
-
-// //////////////////////////////////////////////////////////////////////////////////////////////////

@@ -57,7 +57,7 @@ class FeatureFileReporter extends BddReporter {
         stdout.writeln("Failed!");
       }
       //
-       finally {
+      finally {
         await sink?.flush();
         await sink?.close();
       }

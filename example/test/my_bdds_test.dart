@@ -8,18 +8,13 @@ void main() {
 
   Bdd(feature)
       .scenario('Buying stocks.')
-      //
       .given('The user has 120 dollars of cash-balance.')
       .and('IBM price is 30 dollars.')
       .and('The user has no IBM stocks.')
-      //
       .when('The user buys 1 IBM.')
-      //
       .then('The user now has 1 IBM.')
       .and('The cash-balance is now 90 dollars.')
-      //
       .run((ctx) async {
-    //
     state = AppState.initialState();
 
     // Given:
@@ -38,7 +33,6 @@ void main() {
 
   Bdd(feature)
       .scenario('Selling stocks.')
-      //
       .given('The user has 120 dollars of cash-balance.')
       .and('The current stock prices are as such:')
       .table(
@@ -54,15 +48,11 @@ void main() {
         row(val('Symbol', 'IBM'), val('Quantity', 3)),
         row(val('Symbol', 'GOOG'), val('Quantity', 12)),
       )
-      //
       .when('The user sells 1 IBM.')
-      //
       .then('The user now has 2 IBM.')
       .and('APPL is still 5, and GOOG is still 12.')
       .and('The cash-balance is now 150 dollars.')
-      //
       .run((ctx) async {
-    //
     state = AppState.initialState();
 
     // Given:
@@ -103,19 +93,14 @@ void main() {
 
   Bdd(feature)
       .scenario('Selling stocks you don’t have.')
-      //
       .given('The user has 120 dollars of cash-balance.')
       .and('IBM price is 30 dollars.')
       .and('The user has no IBM stocks.')
-      //
       .when('The user sells 1 IBM.')
-      //
       .then('We get an error.')
       .and('The user continues to have 0 IBM.')
       .and('The cash-balance continues to be 120 dollars.')
-      //
       .run((ctx) async {
-    //
     state = AppState.initialState();
 
     // Given:
@@ -135,13 +120,11 @@ void main() {
   Bdd(feature)
       .scenario('Buying and Selling stocks changes the average price.')
       .given('The user has <Quantity> shares of <Symbol> at <At> dollars each.')
-      .when('The user <BuyOrSell> <How many> of these stock at <Price> for each share.')
+      .when('The user <BuyOrSell> <How many> of these stock '
+          'at <Price> for each share.')
       .then('The number of shares is becomes <Quantity> plus/minus <How many>.')
       .and('The average price for the stock becomes <Average Price>.')
-      //
-      // 10 shares x 100 dollars = 1000 dollars.
-      // Buys 2 shares at 50 dollars each.
-      // Now has 12 shares at: (10 x 100 + 2 x 50) / 12 = 91.67 dollars.
+      // Avg price = (10 x 100 + 2 * 50) / 12 = 91.67 dollars.
       .example(
         val('Symbol', 'IBM'),
         val('Quantity', 10),
@@ -151,11 +134,7 @@ void main() {
         val('Price', 50.00),
         val('Average Price', 91.67),
       )
-      //
-      // 8 shares x 200 dollars = 1600 dollars.
-      // Sells 3 shares at 30 dollars each.
-      // The user now has 6 shares that cost 1600 - 3 x 30 = 1510 dollars.
-      // Therefore the average price is 1510 / 5 = 302.00 dollars.
+      // Avg price =  (1600 - 3 * 30) / (8 - 3) = 302.00 dollars.
       .example(
         val('Symbol', 'IBM'),
         val('Quantity', 8),
@@ -165,9 +144,7 @@ void main() {
         val('Price', 30.00),
         val('Average Price', 302.00),
       )
-      //
       .run((ctx) async {
-    //
     state = AppState.initialState();
 
     String symbol = ctx.example.val('Symbol');
@@ -192,7 +169,9 @@ void main() {
     state.portfolio.buyOrSell(availableStock, buyOrSell, howMany: how);
 
     // Then:
-    expect(state.portfolio.howManyStocks(symbol), quantity + (buyOrSell.isBuy ? how : -how));
+    expect(state.portfolio.howManyStocks(symbol),
+        quantity + (buyOrSell.isBuy ? how : -how));
+
     expect(state.portfolio.getStock(symbol)!.averagePrice, averagePrice);
   });
 }

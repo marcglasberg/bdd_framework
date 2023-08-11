@@ -2,8 +2,6 @@ import 'package:bdd_framework/bdd_framework.dart';
 import "package:flutter_test/flutter_test.dart";
 
 void main() {
-  
-
   var defaultBdd = () => Bdd(BddFeature('F', description: '123\n456'))
       .scenario('a')
       .given('b')
@@ -29,8 +27,6 @@ void main() {
         val('password', 'abcd'),
         val('name', 'Zaher'),
       );
-
-  
 
   test('Running code, once.', () {
     //
@@ -72,8 +68,6 @@ void main() {
     expect(reporter.features.first.testResults.length, 1);
     expect(reporter.features.first.testResults.first.passed, [true]);
   });
-
-  
 
   test('Running code, with examples.', () {
     //
@@ -171,8 +165,6 @@ void main() {
     expect(reporter.features.first.testResults.length, 1);
     expect(reporter.features.first.testResults.first.passed, [false, true, false]);
   });
-
-  
 
   test('Getting table values.', () {
     //
@@ -296,8 +288,6 @@ void main() {
     expect(() => result[0].row(10).val('xyz'), throwsAssertionError);
   });
 
-  
-
   test('If two features have the same title, they are the same feature.', () {
     //
     var reporter = _TestBddReporter(const BddConfig());
@@ -321,8 +311,6 @@ void main() {
     expect(reporter.features.first.bdds, [bdd1, bdd2]);
     expect(reporter.features.last.bdds, [bdd3]);
   });
-
-  
 
   test('Basic report formatting.', () {
     //
@@ -353,8 +341,6 @@ void main() {
         '......| 5182850 | xyz      | Mark  |\n'
         '......| 190     | abcd     | Zaher |\n');
   });
-
-  
 
   test('Configuring the reporter.', () {
     //
@@ -388,8 +374,6 @@ void main() {
         '......<b>|</b> 190     <b>|</b> abcd     <b>|</b> Zaher <b>|</b><br>\n');
   });
 
-  
-
   test('Right align keywords.', () {
     //
     const bddConfig = BddConfig(
@@ -420,8 +404,6 @@ void main() {
         '..........|_5182850_|_xyz______|_Mark__|\n'
         '..........|_190_____|_abcd_____|_Zaher_|\n');
   });
-
-  
 
   test('Test formatters.', () {
     //
@@ -472,8 +454,6 @@ void main() {
         '|123|by transformDescribe|by BddDescribe|by describe method|\n'
         '');
   });
-
-  
 
   test('Keywords, Prefixes and Suffixes.', () {
     //
@@ -584,8 +564,6 @@ void main() {
         '');
   });
 
-  
-
   test('Normalize filename.', () {
     //
     var reporter = _TestBddReporter(const BddConfig());
@@ -595,11 +573,7 @@ void main() {
     expect(reporter.normalizeFileName("a b  C-D_e.fgh"), "a_b__c-d_efgh");
     expect(reporter.normalizeFileName("A&B#C^D+E/F\\G\$"), "abcdefg");
   });
-
-  
 }
-
-
 
 class _TestBddReporter extends BddReporter {
   //
@@ -625,8 +599,6 @@ class _TestBddReporter extends BddReporter {
     }
   }
 }
-
-
 
 class _TestClass1 {
   @override
@@ -655,5 +627,3 @@ class _TestClass4 implements BddDescribe {
 }
 
 Object? _transformDescribe(Object? obj) => obj is _TestClass2 ? 'by transformDescribe' : null;
-
-

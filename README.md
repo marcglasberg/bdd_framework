@@ -1,4 +1,4 @@
-**<a href="https://pub.dartlang.org/packages/bdd_framework"><img src="https://img.shields.io/pub/v/bdd_framework.svg"></a>
+<a href="https://pub.dartlang.org/packages/bdd_framework"><img src="https://img.shields.io/pub/v/bdd_framework.svg"></a>
 
 # BDD Framework
 
@@ -165,7 +165,7 @@ covered.
 
 ---
 
-## 2. How the present BDD Framework is different
+## 2. How this BDD Framework package is different
 
 The present package fundamentally rethinks the way you interact with BDDs. It's designed
 with simplicity and efficiency in mind. Here's how it works:
@@ -566,7 +566,9 @@ Feature: Buying and Selling Stocks
 
 ## 8. BDD Tables
 
-The Gherkin language allows for **tables** in the BDD description.
+The Gherkin language allows for **tables** in the BDD description. Tables let you present
+information in a tabular manner, and are sometimes easier to read than plain text.
+
 Suppose we have the following:
 
 ```gherkin
@@ -962,14 +964,50 @@ issue</a>).
 * For tests that **pass** you'll see a `✔ TEST 1 PASSED!` message.
 
 * For tests that **fail** you'll see the error stacktrace, a `⚠ TEST 1 FAILED!` message, and
-the failing description.
+  the failing description.
 
 <img src="https://raw.githubusercontent.com/marcglasberg/bdd_framework/main/example/lib/images/test_output.png" width="850" alt="console screenshot"/>
 
-At the end, you'll see the test summary:
+At the end, you'll see the test summary, under the title `RESULTS`:
 
 <div style="text-align: center;">
    <img src="https://raw.githubusercontent.com/marcglasberg/bdd_framework/main/example/lib/images/test_summary.png" width="500" alt="test summary"/>
+</div>
+
+---
+
+## 12. Plugin support
+
+If you use the IntelliJ IDE, the BDD Framework package is supported by a plugin called
+<a href="https://plugins.jetbrains.com/plugin/21898-marcelo-s-flutter-dart-essentials">Marcelo's
+Flutter Dart Essentials</a>.
+
+<div style="text-align: center;">
+   <img src="https://raw.githubusercontent.com/marcglasberg/bdd_framework/main/example/lib/images/plugin.png" width="640" alt="plugin"/>
+</div>
+
+Once installed, the plugin draws horizontal line separators above `Bdd()` calls, and also between
+the BDD keywords: `.given(...)`, `.when(...)`, `.then(...)` and `.example(...)`.
+
+Also, in the BDD body you may want to separate the implementation of the given/then/when parts.
+To that end, it will also add separators above any comments that start with `// Given:`,
+`// When:`, `// Then:`, `// Given/When:` or `//When/Then:`.
+
+This enhances code readability, making it easier to distinguish the BDD parts.
+
+Note all these separators are only added for files with names that start with `bdd_` or end
+with `_test.dart`.
+
+<div style="text-align: center;">
+   <img src="https://raw.githubusercontent.com/marcglasberg/bdd_framework/main/example/lib/images/separators.jpg" width="640" alt="separators"/>
+</div>
+
+_Note: This plugin has other features that are not related to the BDD Framework, such as drawing horizontal line
+separators above <b>class, enum and extension</b> definitions. And drawing horizontal line separators above <code>
+test()</code> and <code>group()</code> method calls._
+
+<div style="text-align: center;">
+   <img src="https://raw.githubusercontent.com/marcglasberg/bdd_framework/main/example/lib/images/PluginEffect_Tests.jpg" width="640" alt="separators"/>
 </div>
 
 ---

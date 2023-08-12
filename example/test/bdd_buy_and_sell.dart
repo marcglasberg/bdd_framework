@@ -1,7 +1,8 @@
-import 'package:bdd_framework/bdd_framework.dart';
 import 'package:example/business_classes.dart';
 import 'package:example/main.dart';
-import "package:flutter_test/flutter_test.dart";
+
+import 'package:bdd_framework/bdd_framework.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   var feature = BddFeature('Buying and Selling Stocks');
@@ -88,7 +89,6 @@ void main() {
     expect(state.portfolio.howManyStocks('IBM'), 2);
     expect(state.portfolio.howManyStocks('APPL'), 5);
     expect(state.portfolio.howManyStocks('GOOG'), 12);
-    expect(state.portfolio.howManyStocks('GOOG'), 122);
     expect(state.portfolio.cashBalance, CashBalance(150.00));
 
     /// The code below shows the alternative hard-coded implementation:

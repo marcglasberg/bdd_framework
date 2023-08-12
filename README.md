@@ -5,12 +5,13 @@
 > _This package is brought to you by <a href="https://www.linkedin.com/in/zhammoud/">Zaher
 Hammoud</a> and me, <a href="https://github.com/marcglasberg">Marcelo Glasberg</a>._
 
-This package simplifies <a href='https://en.wikipedia.org/wiki/Behavior-driven_development'>Behavior
+This package supports and simplifies <a href='https://en.wikipedia.org/wiki/Behavior-driven_development'>Behavior
 Driven Development (BDD)</a> for Dart/Flutter.
 
-BDD is a fantastic development method that empowers us to build comprehensive, well-documented,
+BDD is a fantastic development method that empowers you to build comprehensive, well-documented,
 well-tested, and easily adjustable code. It enhances the collaboration between developers and
-other technical and non-technical staff.
+other non-technical staff, hereby called "business stakeholders", which include Project and Product managers, Product
+owners, Business analysts, QA engineers, testers, and sometimes even clients.
 
 Despite its numerous benefits, not all companies adopt BDD. One reason behind this is that
 traditional BDD frameworks tend to complicate the process, discouraging developers from writing
@@ -18,14 +19,13 @@ BDDs. And let's be honest, if it's challenging to write BDDs, they simply won't 
 
 In the past, I championed writing BDDs manually, bypassing the need for a framework. This approach
 has its limitations though, particularly for larger teams. It becomes difficult to establish a
-standard for writing BDDs, and potentially leaving other staff members in the dark. A suitable
-framework could solve this, as long as it eliminates unnecessary complexity and puts the developers'
+standard for writing BDDs, and potentially leaves other staff members in the dark. A suitable
+framework can solve this, as long as it eliminates unnecessary complexity and puts the developers'
 needs at the forefront.
 
 That's where this package comes in. It's designed to make writing BDDs an absolute breeze,
 encouraging developers to adopt it. And in spite of its "developer-centric" approach, I believe
-that other technical and non-technical staff will also appreciate and prefer the streamlined process
-it introduces.
+that business stakeholders will also appreciate and prefer the streamlined process it introduces.
 
 Here's what makes this framework stand out:
 
@@ -44,13 +44,12 @@ Here's what makes this framework stand out:
 - It has an IntelliJ plugin to support
   it ([see here](https://plugins.jetbrains.com/plugin/21898-marcelo-s-flutter-dart-essentials)).
 - It encourages writing more BDDs, by greatly simplifying the process.
-- It uses the Gherkin syntax. For information on Gherkin,
-  visit [Gherkin Syntax](https://docs.cucumber.io/gherkin/). Note: Other syntaxes are possible, with
-  some adaptation.
+- It uses the [Gherkin Syntax](https://docs.cucumber.io/gherkin/). Note: Other syntaxes are possible, with some
+  adaptation.
 
 I launched this package in 2022, but I didn't get around to documenting it extensively. Now, in
-August 2023, I'm about to rectify that by providing thorough documentation and a comprehensive BDD
-tutorial, complete with a real example. Whether you need to learn BDD, or experienced and looking to
+August 2023, I'm about to rectify that by providing this thorough documentation and a comprehensive BDD
+tutorial, complete with a real example. Whether you need to learn BDD, or you are experienced and looking to
 refine your technique, I've got you covered. Get ready to master creating BDDs in practice!
 
 ---
@@ -62,10 +61,8 @@ why they might not be my cup of tea.
 
 Typically, the process follows these steps:
 
-1. Some business stakeholders pen down BDDs in structured "feature files". These files detail
-   specific features that your software must provide. Note that business stakeholders include:
-   Project and Product managers, Product owners, Business analysts, QA engineers, testers,
-   and sometimes even clients.
+1. Some business stakeholders pen down BDD specs in structured "feature files". These files detail
+   specific features that your software must provide.
 2. Developers then create "glue files" to pair with these feature files. They essentially _glue_
    the human-readable specifications to the executable code, by reading the specification text and
    converting to typed values in real code variables.
@@ -978,9 +975,9 @@ At the end, you'll see the test summary, under the title `RESULTS`:
 
 ## 12. Plugin support
 
-If you use the IntelliJ IDE, the BDD Framework package is supported by a plugin called
+If you use the IntelliJ IDE, you may install the
 <a href="https://plugins.jetbrains.com/plugin/21898-marcelo-s-flutter-dart-essentials">Marcelo's
-Flutter Dart Essentials</a>.
+Flutter Dart Essentials</a> plugin to support the BDD Framework package.
 
 <div style="text-align: center;">
    <img src="https://raw.githubusercontent.com/marcglasberg/bdd_framework/main/example/lib/images/plugin.png" width="640" alt="plugin"/>
@@ -1002,9 +999,9 @@ with `_test.dart`.
    <img src="https://raw.githubusercontent.com/marcglasberg/bdd_framework/main/example/lib/images/separators.jpg" width="640" alt="separators"/>
 </div>
 
-_Note: This plugin has other features that are not related to the BDD Framework, such as drawing horizontal line
-separators above <b>class, enum and extension</b> definitions. And drawing horizontal line separators above <code>
-test()</code> and <code>group()</code> method calls._
+_Note: This plugin has other features which are not related to the BDD Framework, such as drawing horizontal line
+separators above class, enum and extension definitions, as well as above <code>test()</code> and <code>group()</code>
+method calls._
 
 <div style="text-align: center;">
    <img src="https://raw.githubusercontent.com/marcglasberg/bdd_framework/main/example/lib/images/PluginEffect_Tests.jpg" width="640" alt="separators"/>

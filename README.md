@@ -8,10 +8,10 @@ Hammoud</a> and me, <a href="https://github.com/marcglasberg">Marcelo Glasberg</
 This package supports and simplifies <a href='https://en.wikipedia.org/wiki/Behavior-driven_development'>Behavior
 Driven Development (BDD)</a> for Dart/Flutter.
 
-BDD is a fantastic development method that empowers you to build comprehensive, well-documented,
+BDD is a fantastic development technique that empowers you to build comprehensive, well-documented,
 well-tested, and easily adjustable code. It enhances the collaboration between developers and
-other non-technical staff, hereby called "business stakeholders", which include Project and Product managers, Product
-owners, Business analysts, QA engineers, testers, and sometimes even clients.
+"business stakeholders", which include Project and Product managers, Product owners, Business analysts, QA
+engineers, testers, and sometimes even clients.
 
 Despite its numerous benefits, not all companies adopt BDD. One reason behind this is that
 traditional BDD frameworks tend to complicate the process, discouraging developers from writing
@@ -44,8 +44,8 @@ Here's what makes this framework stand out:
 - It has an IntelliJ plugin to support
   it ([see here](https://plugins.jetbrains.com/plugin/21898-marcelo-s-flutter-dart-essentials)).
 - It encourages writing more BDDs, by greatly simplifying the process.
-- It uses the [Gherkin Syntax](https://docs.cucumber.io/gherkin/). Note: Other syntaxes are possible, with some
-  adaptation.
+- It uses the [Gherkin Syntax](https://cucumber.io/docs/gherkin/reference/). Note: Other syntaxes are possible, with
+  some adaptation.
 
 I launched this package in 2022, but I didn't get around to documenting it extensively. Now, in
 August 2023, I'm about to rectify that by providing this thorough documentation and a comprehensive BDD
@@ -61,11 +61,11 @@ why they might not be my cup of tea.
 
 Typically, the process follows these steps:
 
-1. Some business stakeholders pen down BDD specs in structured "feature files". These files detail
+1. Some business stakeholders pen down BDD specs in structured text files called "feature files". These files detail
    specific features that your software must provide.
 2. Developers then create "glue files" to pair with these feature files. They essentially _glue_
    the human-readable specifications to the executable code, by reading the specification text and
-   converting to typed values in real code variables.
+   converting it to typed values in real code variables.
 3. Next, developers code and execute the BDDs, where both the input values and expected outcomes
    were created by the glue code from the feature files.
 4. If any issues or missing details surface in the feature files, developers must alert the business
@@ -251,7 +251,7 @@ Feature: User Authentication
     Then I should see an error message.
 ```
 
-This format is highly readable, and even business stakeholders will be able to understand
+This format is highly readable, and business stakeholders will be able to understand
 what's going on. This is a fundamental benefit of BDD, since it allows everyone involved to have a
 clear understanding of the system's behavior and expectations.
 
@@ -286,8 +286,8 @@ scenarios as a guide and validation tool throughout the development process.
 ## 4. Practical advice
 
 The BDD tests should reflect **what** the system does, **not how** it's done. In special, you should
-avoid specifying UI. For example, the following is bad, as it talks about user interface, textfields
-and buttons:
+avoid specifying behavior through UI interactions. For example, the following is bad, as it talks about textfields and
+buttons:
 
 ```gherkin
 Given I am on the Login Screen.
@@ -318,7 +318,7 @@ its own purpose:
   part of what's being tested. You can add `expect` calls in the `Given` section if you want,
   but in this case they function like assertions, just to make sure the initial state is really
   being respected. Surprisingly, the `Given` section is often the most complex part of the test,
-  as it's not always easy to put your system into a particular state. Creating helper classes
+  as it's not always easy to put your system into a particular state. **Pro tip:** Creating helper classes
   and standardized fixtures can help with that.
 
 
@@ -327,11 +327,11 @@ its own purpose:
 
 
 - Lastly, the **`Then`** section outlines the expected result. It presents what you predict will
-  happen after the action specified in the `when` section has been performed. Here, you must include
-  one or more `expect` calls. These calls are there to verify that the action from the `when`
-  section has indeed caused the system's state to change as anticipated in the `then` section.
+  happen after the action specified in the `When` section has been performed. Here, you must include
+  one or more `expect` calls. These calls are there to verify that the action from the `When`
+  section has indeed caused the system's state to change as anticipated in the `Then` section.
 
-These sections may be broken into smaller phrases with the **`And`** keyword. For example:
+These sections may optionally be broken into smaller phrases with the **`And`** keyword. For example:
 
 ```gherkin
 Given user Alice has 10 shares of IBM and $20 in cash-balance.
@@ -469,10 +469,10 @@ void main() {
 }
 ```                 
 
-As you can see above, we create a `BddFeature` object, and then we create a `Bdd` object, passing
-that feature to it. Then we chain a bunch of `given`, `when`, `then` and `and` calls, and finally
-we call `run` to run the BDD. The `run` method takes a callback that will be called when the BDD
-starts running.
+> As you can see above, we create a `BddFeature` object, and then we create a `Bdd` object, passing
+> that feature to it. Then we chain a bunch of `given`, `when`, `then` and `and` calls, and finally
+> we call `run` to run the BDD. The `run` method takes a callback that will be called when the BDD
+> starts running.
 
 How to implement that callback is up to you, and depends completely on your business logic.
 To actually test what's being described in the BDD, use `expect` calls.

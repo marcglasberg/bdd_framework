@@ -433,7 +433,7 @@ example app.
 
 ## 7. Hello World
 
-Suppose we want to implement the following BDD:
+Suppose you want to implement the following BDD:
 
 ```gherkin
 Feature: Buying and Selling Stocks
@@ -450,7 +450,7 @@ Feature: Buying and Selling Stocks
     And The cash-balance is now 90 dollars.
 ```
 
-In the `bdd_buy_and_sell.dart` file we'll translate that description into code, by writing the
+In the `bdd_buy_and_sell.dart` file you may translate that description into code, by writing the
 following:
 
 ```dart
@@ -471,14 +471,16 @@ void main() {
 
 As you can see above, we create a `BddFeature` object, and then we create a `Bdd` object, passing
 that feature to it. Then we chain a bunch of `given`, `when`, `then` and `and` calls, and finally
-we call `run` to run the BDD. The `run` method takes a callback that will be called when the BDD
+call `run` to run the BDD. The `run` method takes a _callback_ that will be called when the BDD
 starts running.
 
 How to implement that callback is up to you, and depends completely on your business logic.
 To actually test what's being described in the BDD, use `expect` calls.
 
-You should strive to make the test code very clean and easy to read and understand. That way, it
-will serve as documentation for your app.
+You should strive to make the test code very clean and easy to read and understand. That way, it will serve as
+documentation for your app. Why? Because it demonstrates how to execute the feature described in the BDD. If you have
+complete BDDs that cover the whole app functionality, this means you also now have complete isolated, simplified and
+runnable code that demonstrates how to do everything that the app does. It's the perfect documentation!
 
 The following is my code that actually runs the BDD test above.
 

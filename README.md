@@ -394,16 +394,16 @@ portfolio app, where the user can buy and sell stocks:
    <img src="https://raw.githubusercontent.com/marcglasberg/bdd_framework/main/example/lib/images/stocks_app_screenshot.png" height="640" alt="screenshot"/>
 </div>
 
-As you can see in the screenshot above, the app has a list of available stocks, and a list of stocks
-the user owns, called the "Portfolio". The user can buy and sell stocks, and the app will update the
-Portfolio accordingly. The app also shows the user's Cash Balance, and the total value of the stocks
-the user owns. You can transfer money in and out of the app, US$ 100 at a time, by pressing the
-circle buttons at the top of the screen. When you have enough money to buy a particular stock, its
-buy button will be enabled.
-When you have enough stocks to sell, its sell button will be enabled.
-The stock prices continuously change, and the app will update the portfolio value accordingly.
-The Portfolio shows the average price of the stocks the user owns, and the total number of stocks
-the user owns.
+> As you can see in the screenshot above, the app has a list of available stocks, and a list of stocks
+> the user owns, called the "Portfolio". The user can buy and sell stocks, and the app will update the
+> Portfolio accordingly. The app also shows the user's Cash Balance, and the total value of the stocks
+> the user owns. You can transfer money in and out of the app, US$ 100 at a time, by pressing the
+> circle buttons at the top of the screen. When you have enough money to buy a particular stock, its
+> buy button will be enabled.
+> When you have enough stocks to sell, its sell button will be enabled.
+> The stock prices continuously change, and the app will update the portfolio value accordingly.
+> The Portfolio shows the average price of the stocks the user owns, and the total number of stocks
+> the user owns.
 
 You may run the app in your own machine by cloning the repo and running the
 <a href="https://github.com/marcglasberg/bdd_framework/blob/main/example/lib/main.dart">
@@ -469,10 +469,10 @@ void main() {
 }
 ```                 
 
-> As you can see above, we create a `BddFeature` object, and then we create a `Bdd` object, passing
-> that feature to it. Then we chain a bunch of `given`, `when`, `then` and `and` calls, and finally
-> we call `run` to run the BDD. The `run` method takes a callback that will be called when the BDD
-> starts running.
+As you can see above, we create a `BddFeature` object, and then we create a `Bdd` object, passing
+that feature to it. Then we chain a bunch of `given`, `when`, `then` and `and` calls, and finally
+we call `run` to run the BDD. The `run` method takes a callback that will be called when the BDD
+starts running.
 
 How to implement that callback is up to you, and depends completely on your business logic.
 To actually test what's being described in the BDD, use `expect` calls.

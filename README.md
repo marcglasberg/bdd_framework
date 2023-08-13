@@ -394,6 +394,8 @@ portfolio app, where the user can buy and sell stocks:
    <img src="https://raw.githubusercontent.com/marcglasberg/bdd_framework/main/example/lib/images/stocks_app_screenshot.png" height="640" alt="screenshot"/>
 </div>
 
+<br>
+
 > As you can see in the screenshot above, the app has a list of available stocks, and a list of stocks
 > the user owns, called the "Portfolio". The user can buy and sell stocks, and the app will update the
 > Portfolio accordingly. The app also shows the user's Cash Balance, and the total value of the stocks
@@ -404,6 +406,8 @@ portfolio app, where the user can buy and sell stocks:
 > The stock prices continuously change, and the app will update the portfolio value accordingly.
 > The Portfolio shows the average price of the stocks the user owns, and the total number of stocks
 > the user owns.
+
+<br>
 
 You may run the app in your own machine by cloning the repo and running the
 <a href="https://github.com/marcglasberg/bdd_framework/blob/main/example/lib/main.dart">
@@ -976,6 +980,8 @@ issue</a>).
 
 <img src="https://raw.githubusercontent.com/marcglasberg/bdd_framework/main/example/lib/images/test_output.png" width="850" alt="console screenshot"/>
 
+<br>
+
 At the end, you'll see the test summary, under the title `RESULTS`:
 
 <div style="text-align: center;">
@@ -1069,6 +1075,8 @@ For more information, please refer to the license page.**
 
 <br>_Marcelo Glasberg:_<br>
 
+<a href="https://glasberg.dev">_glasberg.dev_</a>
+<br>
 <a href="https://github.com/marcglasberg">_github.com/marcglasberg_</a>
 <br>
 <a href="https://www.linkedin.com/in/marcglasberg/">_linkedin.com/in/marcglasberg/_</a>

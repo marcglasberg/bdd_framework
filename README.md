@@ -886,17 +886,21 @@ Bdd(feature)
 
 ## 10. Running all BDDs at once
 
-You can run a single BDD by clicking the `run` button in your editor:
+You can all BDDs in a single Dart file by clicking the `run` button to the left of the `main` function in the editor.
+
+Or you can a single BDD by clicking the `run` button to the left of that particular BDD, in the editor.
 
 <div style="text-align: center;">
    <img src="https://raw.githubusercontent.com/marcglasberg/bdd_framework/main/example/lib/images/how_to_run.png" width="640" alt="how to run"/>
 </div>
 
-However, you will usually create many separate dart files containing many BDDs each.
-To run all of them at once, simply create a file called `run_all.dart` in your test directory,
-and list all your bdd files.
+<br>
 
-Here, for example, we list 2 BDD files: `bdd_buy_and_sell.dart` and `bdd_average_price.dart`:
+However, you will usually create many separate Dart files containing many BDDs each, and you will want to 
+run all of them at once. To that end, simply create a file called `run_all.dart` in your test directory,
+and list all your BDD files.
+
+Here, for example, I am listing 2 BDD files: `bdd_buy_and_sell.dart` and `bdd_average_price.dart`:
 
 ```dart
 import 'package:bdd_framework/bdd_framework.dart';
@@ -906,7 +910,8 @@ import 'bdd_average_price.dart' as bdd_average_price;
 import 'bdd_buy_and_sell.dart' as bdd_buy_and_sell;
 
 void main() async {
-  /// This will print the result to the console.
+  
+  // This will print the result to the console.
   BddReporter.set(
     ConsoleReporter(),
     FeatureFileReporter(clearAllOutputBeforeRun: true),

@@ -886,7 +886,8 @@ Bdd(feature)
 
 ## 10. Running all BDDs at once
 
-You can all BDDs in a single Dart file by clicking the `run` button to the left of the `main` function in the editor.
+You can run all BDDs in a single Dart file by clicking the `run` button to the left of the `main` function in the
+editor.
 
 Or you can a single BDD by clicking the `run` button to the left of that particular BDD, in the editor.
 
@@ -896,7 +897,7 @@ Or you can a single BDD by clicking the `run` button to the left of that particu
 
 <br>
 
-However, you will usually create many separate Dart files containing many BDDs each, and you will want to 
+However, you will usually create many separate Dart files containing many BDDs each, and you will want to
 run all of them at once. To that end, simply create a file called `run_all.dart` in your test directory,
 and list all your BDD files.
 
@@ -910,7 +911,6 @@ import 'bdd_average_price.dart' as bdd_average_price;
 import 'bdd_buy_and_sell.dart' as bdd_buy_and_sell;
 
 void main() async {
-  
   // This will print the result to the console.
   BddReporter.set(
     ConsoleReporter(),
@@ -931,8 +931,9 @@ internal company's website.
 
 The **BDD Framework** package comes out of the box with 2 reporters:
 
-* `ConsoleReporter()` prints the results to the console. Under IntelliJ for Windows
-  the output will have color. Note: Colors don't work under IntelliJ for Mac.
+* `ConsoleReporter()` prints the results to the console. Under the IntelliJ IDE for Windows
+  the output will have color. Note colors don't work under the IntelliJ for Mac
+  (<a href="https://github.com/flutter/flutter/issues/64491">issue</a>).
 
 <p>
 
@@ -960,16 +961,17 @@ When you run your BDDs in the IntelliJ IDE, your tests will be listed in the lef
 will be numbered as `1`, `2` etc.
 
 Since BDDs with an `Examples` section run more than once, each run is going to
-be numbered with an index. For example, if the fourth BDD has two examples, we'll get `4₁` and `4₂`.
+be numbered with an index. For example, if the fourth BDD has two examples, we'll get `4₁` and `4₂`
+(see in the image below).
 
 The output of each BDD will be printed to the console.
 In **Windows**, the output will be colored. That doesn't work in the **Mac**, as Dart's console for
 the Mac still doesn't support colors (see <a href="https://github.com/flutter/flutter/issues/64491">
 issue</a>).
 
-* For tests that **pass** you'll see a `✔ TEST 1 PASSED!` message.
+* For tests that **pass** you'll get a `✔ TEST 1 PASSED` message.
 
-* For tests that **fail** you'll see the error stacktrace, a `⚠ TEST 1 FAILED!` message, and
+* For tests that **fail** you'll get the error stacktrace, a `⚠ TEST 1 FAILED` message, and
   the failing description.
 
 <img src="https://raw.githubusercontent.com/marcglasberg/bdd_framework/main/example/lib/images/test_output.png" width="850" alt="console screenshot"/>

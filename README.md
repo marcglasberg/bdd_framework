@@ -1014,11 +1014,9 @@ All this only works for files with names that start with `bdd_` or end with `_te
 
 _Note: The plugin has other features which are not related to the BDD Framework, such as drawing horizontal line
 separators above class, enum and extension definitions, as well as above <code>test()</code> and <code>group()</code>
-method calls._
+method calls:_
 
-<div style="text-align: center;">
-   <img src="https://raw.githubusercontent.com/marcglasberg/bdd_framework/main/example/lib/images/PluginEffect_Tests.jpg" width="640" alt="separators"/>
-</div>
+<img src="https://raw.githubusercontent.com/marcglasberg/bdd_framework/main/example/lib/images/PluginEffect_Tests.jpg" width="520" alt="separators"/>
 
 ---
 

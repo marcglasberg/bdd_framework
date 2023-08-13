@@ -1,6 +1,6 @@
-## [1.1.0] - 2022/06/13
+## [2.0.0] - 2022/08/12
 
-* Documentation.
+* Documentation, BDD tutorial and example app.
 
 ## [1.0.0] - 2022/04/16
 

@@ -1,7 +1,6 @@
+import 'package:bdd_framework/bdd_framework.dart';
 import 'package:example/business_classes.dart';
 import 'package:example/main.dart';
-
-import 'package:bdd_framework/bdd_framework.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

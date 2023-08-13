@@ -788,7 +788,7 @@ Bdd(feature)
   .run((ctx) async { ...
 ```
 
-Note the example values are not limited to strings. They can be any type, including enums, numbers,
+Note the example values are not limited to strings. They can be of **any type**, including enums, numbers,
 custom classes, etc.
 
 The code that implements the BDD test **must** read those typed values from the `Examples` section,
@@ -822,9 +822,9 @@ double averagePrice = val('Average Price');
 
 As you can see, the values are read by _name_, and the type is inferred from the variable type.
 
-Notice you don't need to refer to the number of the example you are reading, because the BDD
-Framework
-will automatically run the BDD twice, one for each set of example values.
+Notice you don't need to refer to the number of the example you are reading, because the BDD Framework will
+automatically run the BDD as many times as needed, one for each set of example values.
+In this example it will be run twice.
 
 Here is the complete code:
 
@@ -888,7 +888,9 @@ Bdd(feature)
 
 You can run a single BDD by clicking the `run` button in your editor:
 
-[IMAGE]
+<div style="text-align: center;">
+   <img src="https://raw.githubusercontent.com/marcglasberg/bdd_framework/main/example/lib/images/how_to_run.png" width="640" alt="how to run"/>
+</div>
 
 However, you will usually create many separate dart files containing many BDDs each.
 To run all of them at once, simply create a file called `run_all.dart` in your test directory,

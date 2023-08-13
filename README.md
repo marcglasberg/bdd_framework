@@ -989,10 +989,13 @@ At the end, you'll see the test summary, under the title `RESULTS`:
 If you use the IntelliJ IDE, you may install the
 <a href="https://plugins.jetbrains.com/plugin/21898-marcelo-s-flutter-dart-essentials">Marcelo's
 Flutter Dart Essentials</a> plugin to support the BDD Framework package.
+It enhances code readability, making it easier to distinguish the many BDD parts.
 
 <div style="text-align: center;">
    <img src="https://raw.githubusercontent.com/marcglasberg/bdd_framework/main/example/lib/images/plugin.png" width="640" alt="plugin"/>
 </div>
+
+<br>
 
 Once installed, the plugin draws horizontal line separators above `Bdd()` calls, and also between
 the BDD keywords: `.given(...)`, `.when(...)`, `.then(...)` and `.example(...)`.
@@ -1001,16 +1004,15 @@ Also, in the BDD body you may want to separate the implementation of the given/t
 To that end, it will also add separators above any comments that start with `// Given:`,
 `// When:`, `// Then:`, `// Given/When:` or `//When/Then:`.
 
-This enhances code readability, making it easier to distinguish the BDD parts.
-
-Note all these separators are only added for files with names that start with `bdd_` or end
-with `_test.dart`.
+All this only works for files with names that start with `bdd_` or end with `_test.dart`.
 
 <div style="text-align: center;">
    <img src="https://raw.githubusercontent.com/marcglasberg/bdd_framework/main/example/lib/images/separators.jpg" width="640" alt="separators"/>
 </div>
 
-_Note: This plugin has other features which are not related to the BDD Framework, such as drawing horizontal line
+<br> 
+
+_Note: The plugin has other features which are not related to the BDD Framework, such as drawing horizontal line
 separators above class, enum and extension definitions, as well as above <code>test()</code> and <code>group()</code>
 method calls._
 

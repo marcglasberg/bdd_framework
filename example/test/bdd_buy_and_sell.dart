@@ -37,20 +37,20 @@ void main() {
       .and('The current stock prices are as such:')
       .table(
         'Available Stocks',
-        row(val('Symbol', 'APPL'), val('Price', 50.25)),
-        row(val('Symbol', 'IBM'), val('Price', 30.00)),
-        row(val('Symbol', 'GOOG'), val('Price', 60.75)),
+        row(val('Ticker', 'AAPL'), val('Price', 50.25)),
+        row(val('Ticker', 'IBM'), val('Price', 30.00)),
+        row(val('Ticker', 'GOOG'), val('Price', 60.75)),
       )
       .and('The user Portfolio contains:')
       .table(
         'Portfolio',
-        row(val('Symbol', 'APPL'), val('Quantity', 5)),
-        row(val('Symbol', 'IBM'), val('Quantity', 3)),
-        row(val('Symbol', 'GOOG'), val('Quantity', 12)),
+        row(val('Ticker', 'AAPL'), val('Quantity', 5)),
+        row(val('Ticker', 'IBM'), val('Quantity', 3)),
+        row(val('Ticker', 'GOOG'), val('Quantity', 12)),
       )
       .when('The user sells 1 IBM.')
       .then('The user now has 2 IBM.')
-      .and('APPL is still 5, and GOOG is still 12.')
+      .and('AAPL is still 5, and GOOG is still 12.')
       .and('The cash-balance is now 150 dollars.')
       .run((ctx) async {
     state = AppState.initialState();
@@ -63,10 +63,10 @@ void main() {
     var availableStocksTable = ctx.table('Available Stocks').rows;
 
     for (var row in availableStocksTable) {
-      String symbol = row.val('Symbol');
+      String ticker = row.val('Ticker');
       double price = row.val('Price');
 
-      var stock = state.availableStocks.findBySymbol(symbol);
+      var stock = state.availableStocks.findBySymbol(ticker);
       stock.setCurrentPrice(price);
     }
 
@@ -75,9 +75,9 @@ void main() {
     var portfolioTable = ctx.table('Portfolio').rows;
 
     for (var row in portfolioTable) {
-      String symbol = row.val('Symbol');
+      String ticker = row.val('Ticker');
       int quantity = row.val('Quantity');
-      state.portfolio.set(symbol, quantity: quantity, averagePrice: 100);
+      state.portfolio.setStockInPortfolio(ticker, quantity: quantity, averagePrice: 100);
     }
 
     // When:
@@ -86,7 +86,7 @@ void main() {
 
     // Then:
     expect(state.portfolio.howManyStocks('IBM'), 2);
-    expect(state.portfolio.howManyStocks('APPL'), 5);
+    expect(state.portfolio.howManyStocks('AAPL'), 5);
     expect(state.portfolio.howManyStocks('GOOG'), 12);
     expect(state.portfolio.cashBalance, CashBalance(150.00));
 
@@ -96,7 +96,7 @@ void main() {
     //   // Given:
     //   state.portfolio.cashBalance.set(120.00);
     //
-    //   var appl = state.availableStocks.findBySymbol('APPL');
+    //   var appl = state.availableStocks.findBySymbol('AAPL');
     //   var ibm = state.availableStocks.findBySymbol('IBM');
     //   var goog = state.availableStocks.findBySymbol('GOOG');
     //
@@ -104,7 +104,7 @@ void main() {
     //   ibm.setCurrentPrice(30.00);
     //   goog.setCurrentPrice(60.75);
     //
-    //   state.portfolio.set('APPL', quantity: 5, averagePrice: 100);
+    //   state.portfolio.set('AAPL', quantity: 5, averagePrice: 100);
     //   state.portfolio.set('IBM', quantity: 3, averagePrice: 100);
     //   state.portfolio.set('GOOG', quantity: 12, averagePrice: 100);
     //
@@ -113,7 +113,7 @@ void main() {
     //
     //   // Then:
     //   expect(state.portfolio.howManyStocks('IBM'), 2);
-    //   expect(state.portfolio.howManyStocks('APPL'), 5);
+    //   expect(state.portfolio.howManyStocks('AAPL'), 5);
     //   expect(state.portfolio.howManyStocks('GOOG'), 12);
     //   expect(state.portfolio.cashBalance, CashBalance(150.00));
   });

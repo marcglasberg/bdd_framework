@@ -47,7 +47,7 @@ class _MyHomePageState extends State<MyHomePage> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _cashBalanceAndPortfolio(),
+          _cashBalance(),
           _portfolio(),
           Expanded(
             child: _availableStocks(),
@@ -57,7 +57,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Widget _cashBalanceAndPortfolio() {
+  Widget _cashBalance() {
     return Box(
       padding: const Pad(top: 16, left: 16, right: 8),
       width: double.infinity,
@@ -117,14 +117,14 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            for (var stock in state.availableStocks.stocks)
+            for (var availableStock in state.availableStocks.list)
               AvailableStockWidget(
-                stock,
+                availableStock,
                 onBuy: () => setState(() {
-                  state.portfolio.buy(stock);
+                  state.portfolio.buy(availableStock);
                 }),
                 onSell: () => setState(() {
-                  state.portfolio.sell(stock);
+                  state.portfolio.sell(availableStock);
                 }),
               ),
           ],
@@ -145,14 +145,14 @@ class StockInPortfolio extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
         padding: const Pad(top: 6),
-        child: Text('${stock.symbol} (${stock.howManyShares} shares @ US\$ ${stock.averagePriceStr})',
+        child: Text('${stock.ticker} (${stock.howManyShares} shares @ US\$ ${stock.averagePriceStr})',
             style: stockStyle),
       );
 }
 
 class AvailableStockWidget extends StatefulWidget {
   //
-  static const symbolStyle = TextStyle(fontSize: 26, color: Colors.black);
+  static const tickerStyle = TextStyle(fontSize: 26, color: Colors.black);
   static const nameStyle = TextStyle(fontSize: 16, color: Colors.black54);
 
   static const priceStyle =
@@ -215,7 +215,7 @@ class _AvailableStockWidgetState extends State<AvailableStockWidget> {
           const SizedBox(height: 12),
           Row(
             children: [
-              Text(widget.availableStock.symbol, style: AvailableStockWidget.symbolStyle),
+              Text(widget.availableStock.ticker, style: AvailableStockWidget.tickerStyle),
               const Spacer(),
               Text(widget.availableStock.currentPriceStr, style: AvailableStockWidget.priceStyle),
             ],

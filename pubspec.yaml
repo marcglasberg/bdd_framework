@@ -1,10 +1,10 @@
 name: bdd_framework
 description: BDD framework for Dart/Flutter. Lets you create BDD tests in code, and gives you easy to read error messages when assertions fail. Exports to Gherkin/Cucumber feature files.
-version: 2.0.1
+version: 3.0.0
 homepage: https://github.com/marcglasberg/bdd_framework
 
 environment:
-  sdk: ">=2.16.2 <4.0.0"
+  sdk: ">=3.0.0 <4.0.0"
   flutter: ">=1.17.0"
 
 dependencies:

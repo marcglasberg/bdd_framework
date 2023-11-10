@@ -41,9 +41,24 @@ class row {
     val? v14,
     val? v15,
     val? v16,
-  ]) : values = [v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16]
-            .whereNotNull()
-            .toList();
+  ]) : values = [
+          v1,
+          v2,
+          v3,
+          v4,
+          v5,
+          v6,
+          v7,
+          v8,
+          v9,
+          v10,
+          v11,
+          v12,
+          v13,
+          v14,
+          v15,
+          v16
+        ].whereNotNull().toList();
 }
 
 class val {
@@ -213,21 +228,23 @@ abstract class BddTerm extends _BaseTerm {
               ? config.keywords.comment
               : null;
 
-  String? _keywordPrefixVariation(BddConfig config) => (variation == _Variation.and)
-      ? config.keywordPrefix.and
-      : (variation == _Variation.but)
-          ? config.keywordPrefix.but
-          : (variation == _Variation.note)
-              ? config.keywordPrefix.comment
-              : null;
+  String? _keywordPrefixVariation(BddConfig config) =>
+      (variation == _Variation.and)
+          ? config.keywordPrefix.and
+          : (variation == _Variation.but)
+              ? config.keywordPrefix.but
+              : (variation == _Variation.note)
+                  ? config.keywordPrefix.comment
+                  : null;
 
-  String? _keywordSuffixVariation(BddConfig config) => (variation == _Variation.and)
-      ? config.keywordSuffix.and
-      : (variation == _Variation.but)
-          ? config.keywordSuffix.but
-          : (variation == _Variation.note)
-              ? config.keywordSuffix.comment
-              : null;
+  String? _keywordSuffixVariation(BddConfig config) =>
+      (variation == _Variation.and)
+          ? config.keywordSuffix.and
+          : (variation == _Variation.but)
+              ? config.keywordSuffix.but
+              : (variation == _Variation.note)
+                  ? config.keywordSuffix.comment
+                  : null;
 
   String? _prefixVariation(BddConfig config) => (variation == _Variation.and)
       ? config.prefix.and
@@ -340,10 +357,12 @@ class BddFramework {
   BddExample? example() => allTerms<BddExample>().firstOrNull;
 
   /// A Bdd may have 0, 1, or more tables (which are not examples).
-  List<BddTableTerm> tables() => allTerms<BddTableTerm>().where((t) => t is! BddExample).toList();
+  List<BddTableTerm> tables() =>
+      allTerms<BddTableTerm>().where((t) => t is! BddExample).toList();
 
   /// The example, if it exists, may have any number of rows.
-  Set<val>? exampleRow(int? count) => (count == null) ? null : example()?.rows[count];
+  Set<val>? exampleRow(int? count) =>
+      (count == null) ? null : example()?.rows[count];
 
   int numberOfExamples() {
     BddExample? _example = example();
@@ -385,8 +404,14 @@ class BddFramework {
 
   BddFramework timeoutSec(int seconds) => timeout(Duration(seconds: seconds));
 
+  /// The high-level description of a test case in Gherkin. It describes a
+  /// particular functionality or feature of the system being tested.
   BddScenario scenario(String text) => BddScenario(this, text);
 
+  /// This keyword starts a step that sets up the initial context of the
+  /// scenario. It's used to describe the state of the world before you begin
+  /// the behavior you're specifying in this scenario. For example,
+  /// "Given I am logged into the website" sets the scene for the actions that follow.
   BddGiven given(String text) => BddGiven(this, text);
 
   Iterable<BddTerm> get textTerms => terms.whereType<BddTerm>();
@@ -414,7 +439,8 @@ class BddFramework {
 }
 
 class BddScenario extends BddTerm {
-  BddScenario(BddFramework bdd, String text) : super(bdd, text, _Variation.term);
+  BddScenario(BddFramework bdd, String text)
+      : super(bdd, text, _Variation.term);
 
   bool get containsExample => bdd.terms.any((term) => term is BddExample);
 
@@ -446,25 +472,38 @@ class BddScenario extends BddTerm {
       ? config.suffix.scenarioOutline
       : config.suffix.scenario;
 
+  /// This keyword starts a step that sets up the initial context of the
+  /// scenario. It's used to describe the state of the world before you begin
+  /// the behavior you're specifying in this scenario. For example,
+  /// "Given I am logged into the website" sets the scene for the actions that follow.
   BddGiven given(String text) => BddGiven(bdd, text);
 
+  /// Often used informally in comments within a Gherkin document to provide
+  /// additional information, clarifications, or explanations about the scenario
+  /// or steps. Comments in Gherkin are usually marked with a hashtag (#) and
+  /// are ignored when the tests are executed. A "Note" can be useful for
+  /// giving context or explaining the rationale behind a certain test scenario,
+  /// making it easier for others to understand the purpose and scope of the test.
   BddGiven note(String text) => BddGiven._(bdd, text, _Variation.note);
 
   @override
   // ignore: unnecessary_overrides
-  String toString([BddConfig config = BddConfig._default]) => super.toString(config);
+  String toString([BddConfig config = BddConfig._default]) =>
+      super.toString(config);
 }
 
 class BddGiven extends BddTerm {
   BddGiven(BddFramework bdd, String text) : super(bdd, text, _Variation.term);
 
-  BddGiven._(BddFramework bdd, String text, _Variation variation) : super(bdd, text, variation);
+  BddGiven._(BddFramework bdd, String text, _Variation variation)
+      : super(bdd, text, variation);
 
   @override
   String spaces(BddConfig config) => config.spaces + config.spaces;
 
   @override
-  String keyword(BddConfig config) => _keywordVariation(config) ?? config.keywords.given;
+  String keyword(BddConfig config) =>
+      _keywordVariation(config) ?? config.keywords.given;
 
   @override
   String keywordPrefix(BddConfig config) =>
@@ -475,13 +514,15 @@ class BddGiven extends BddTerm {
       _keywordSuffixVariation(config) ?? config.keywordSuffix.given;
 
   @override
-  String prefix(BddConfig config) => _prefixVariation(config) ?? config.prefix.given;
+  String prefix(BddConfig config) =>
+      _prefixVariation(config) ?? config.prefix.given;
 
   @override
-  String suffix(BddConfig config) => _suffixVariation(config) ?? config.suffix.given;
+  String suffix(BddConfig config) =>
+      _suffixVariation(config) ?? config.suffix.given;
 
-  /// A table must have a name and rows. The name is necessary if you want to read the values from
-  /// it later (if not, just pass an empty string).
+  /// A table must have a name and rows. The name is necessary if you want to
+  /// read the values from it later (if not, just pass an empty string).
   /// Example: `ctx.table('notifications').row(0).val('read') as bool`.
   BddGivenTable table(
     String tableName,
@@ -502,41 +543,91 @@ class BddGiven extends BddTerm {
     row? row15,
     row? row16,
   ]) =>
-      BddGivenTable(bdd, tableName, row1, row2, row3, row4, row5, row6, row7, row8, row9, row10,
-          row11, row12, row13, row14, row15, row16);
+      BddGivenTable(bdd, tableName, row1, row2, row3, row4, row5, row6, row7,
+          row8, row9, row10, row11, row12, row13, row14, row15, row16);
 
+  /// This keyword is used to extend a 'Given', 'When', or 'Then' step.
+  /// It allows you to add multiple conditions or actions in the same step
+  /// without having to repeat the 'Given', 'When', or 'Then' keyword.
+  /// For example, "And I should see a confirmation message" could follow
+  /// a 'Then' step to further specify the expected outcomes.
   BddGiven and(String text) => BddGiven._(bdd, text, _Variation.and);
 
+  /// This keyword is used similarly to "And," but it is typically used for
+  /// negative conditions or to express a contrast with the previous step.
+  /// It's a way to extend a "Given," "When," or "Then" step with an additional
+  /// condition that contrasts with what was previously stated. For example,
+  /// after a "Then" step, you might have "But I should not be logged out."
+  /// This helps in creating more comprehensive scenarios by covering both
+  /// what should happen and what should not happen under certain conditions.
   BddGiven but(String text) => BddGiven._(bdd, text, _Variation.but);
 
+  /// Often used informally in comments within a Gherkin document to provide
+  /// additional information, clarifications, or explanations about the scenario
+  /// or steps. Comments in Gherkin are usually marked with a hashtag (#) and
+  /// are ignored when the tests are executed. A "Note" can be useful for
+  /// giving context or explaining the rationale behind a certain test scenario,
+  /// making it easier for others to understand the purpose and scope of the test.
   BddGiven note(String text) => BddGiven._(bdd, text, _Variation.note);
 
+  /// This keyword indicates the specific action taken by the user or the system.
+  /// It's the trigger for the behavior that you're specifying. For instance,
+  /// "When I click the 'Submit' button" describes the action taken after the
+  /// initial context is set by the 'Given' step.
   BddWhen when(String text) => BddWhen(bdd, text);
 
+  /// This keyword is used to describe the expected outcome or result after the
+  /// 'When' step is executed. It's used to assert that a certain outcome should
+  /// occur, which helps to validate whether the system behaves as expected.
+  /// An example is, "Then I should be redirected to the dashboard".
   BddThen then(String text) => BddThen(bdd, text);
 
   _GivenCode code(CodeRun code) => _GivenCode(bdd, code);
 
   @override
   // ignore: unnecessary_overrides
-  String toString([BddConfig config = BddConfig._default]) => super.toString(config);
+  String toString([BddConfig config = BddConfig._default]) =>
+      super.toString(config);
 }
 
 class _GivenCode extends BddCodeTerm {
   _GivenCode(BddFramework bdd, CodeRun code) : super(bdd, code);
 
-  /// A table must have a name and rows. The name is necessary if you want to read the values from
-  /// it later (if not, just pass an empty string).
+  /// A table must have a name and rows. The name is necessary if you want to
+  /// read the values from it later (if not, just pass an empty string).
   /// Example: `ctx.table('notifications').row(0).val('read') as bool`.
-  BddGivenTable table(String tableName, row row1, [row? row2, row? row3, row? row4]) =>
+  BddGivenTable table(String tableName, row row1,
+          [row? row2, row? row3, row? row4]) =>
       BddGivenTable(bdd, tableName, row1, row2, row3, row4);
 
+  /// This keyword is used to extend a 'Given', 'When', or 'Then' step.
+  /// It allows you to add multiple conditions or actions in the same step
+  /// without having to repeat the 'Given', 'When', or 'Then' keyword.
+  /// For example, "And I should see a confirmation message" could follow
+  /// a 'Then' step to further specify the expected outcomes.
   BddGiven and(String text) => BddGiven._(bdd, text, _Variation.and);
 
+  /// This keyword is used similarly to "And," but it is typically used for
+  /// negative conditions or to express a contrast with the previous step.
+  /// It's a way to extend a "Given," "When," or "Then" step with an additional
+  /// condition that contrasts with what was previously stated. For example,
+  /// after a "Then" step, you might have "But I should not be logged out."
+  /// This helps in creating more comprehensive scenarios by covering both
+  /// what should happen and what should not happen under certain conditions.
   BddGiven but(String text) => BddGiven._(bdd, text, _Variation.but);
 
+  /// Often used informally in comments within a Gherkin document to provide
+  /// additional information, clarifications, or explanations about the scenario
+  /// or steps. Comments in Gherkin are usually marked with a hashtag (#) and
+  /// are ignored when the tests are executed. A "Note" can be useful for
+  /// giving context or explaining the rationale behind a certain test scenario,
+  /// making it easier for others to understand the purpose and scope of the test.
   BddGiven note(String text) => BddGiven._(bdd, text, _Variation.note);
 
+  /// This keyword indicates the specific action taken by the user or the system.
+  /// It's the trigger for the behavior that you're specifying. For instance,
+  /// "When I click the 'Submit' button" describes the action taken after the
+  /// initial context is set by the 'Given' step.
   BddWhen when(String text) => BddWhen(bdd, text);
 
   _GivenCode code(CodeRun code) => _GivenCode(bdd, code);
@@ -545,13 +636,15 @@ class _GivenCode extends BddCodeTerm {
 class BddWhen extends BddTerm {
   BddWhen(BddFramework bdd, String text) : super(bdd, text, _Variation.term);
 
-  BddWhen._(BddFramework bdd, String text, _Variation variation) : super(bdd, text, variation);
+  BddWhen._(BddFramework bdd, String text, _Variation variation)
+      : super(bdd, text, variation);
 
   @override
   String spaces(BddConfig config) => config.spaces + config.spaces;
 
   @override
-  String keyword(BddConfig config) => _keywordVariation(config) ?? config.keywords.when;
+  String keyword(BddConfig config) =>
+      _keywordVariation(config) ?? config.keywords.when;
 
   @override
   String keywordPrefix(BddConfig config) =>
@@ -562,49 +655,99 @@ class BddWhen extends BddTerm {
       _keywordSuffixVariation(config) ?? config.keywordSuffix.when;
 
   @override
-  String prefix(BddConfig config) => _prefixVariation(config) ?? config.prefix.when;
+  String prefix(BddConfig config) =>
+      _prefixVariation(config) ?? config.prefix.when;
 
   @override
-  String suffix(BddConfig config) => _suffixVariation(config) ?? config.suffix.when;
+  String suffix(BddConfig config) =>
+      _suffixVariation(config) ?? config.suffix.when;
 
-  /// A table must have a name and rows. The name is necessary if you want to read the values from
-  /// it later (if not, just pass an empty string).
+  /// A table must have a name and rows. The name is necessary if you want to
+  /// read the values from it later (if not, just pass an empty string).
   /// Example: `ctx.table('notifications').row(0).val('read') as bool`.
-  BddWhenTable table(String tableName, row row1, [row? row2, row? row3, row? row4]) =>
+  BddWhenTable table(String tableName, row row1,
+          [row? row2, row? row3, row? row4]) =>
       BddWhenTable(bdd, tableName, row1, row2, row3, row4);
 
+  /// This keyword is used to extend a 'Given', 'When', or 'Then' step.
+  /// It allows you to add multiple conditions or actions in the same step
+  /// without having to repeat the 'Given', 'When', or 'Then' keyword.
+  /// For example, "And I should see a confirmation message" could follow
+  /// a 'Then' step to further specify the expected outcomes.
   BddWhen and(String text) => BddWhen._(bdd, text, _Variation.and);
 
+  /// This keyword is used similarly to "And," but it is typically used for
+  /// negative conditions or to express a contrast with the previous step.
+  /// It's a way to extend a "Given," "When," or "Then" step with an additional
+  /// condition that contrasts with what was previously stated. For example,
+  /// after a "Then" step, you might have "But I should not be logged out."
+  /// This helps in creating more comprehensive scenarios by covering both
+  /// what should happen and what should not happen under certain conditions.
   BddWhen but(String text) => BddWhen._(bdd, text, _Variation.but);
 
+  /// Often used informally in comments within a Gherkin document to provide
+  /// additional information, clarifications, or explanations about the scenario
+  /// or steps. Comments in Gherkin are usually marked with a hashtag (#) and
+  /// are ignored when the tests are executed. A "Note" can be useful for
+  /// giving context or explaining the rationale behind a certain test scenario,
+  /// making it easier for others to understand the purpose and scope of the test.
   BddWhen note(String text) => BddWhen._(bdd, text, _Variation.note);
 
+  /// This keyword is used to describe the expected outcome or result after the
+  /// 'When' step is executed. It's used to assert that a certain outcome should
+  /// occur, which helps to validate whether the system behaves as expected.
+  /// An example is, "Then I should be redirected to the dashboard".
   BddThen then(String text) => BddThen(bdd, text);
 
   _WhenCode code(CodeRun code) => _WhenCode(bdd, code);
 
+  /// Should be used to actually provide the code that runs the BDD.
   void run(CodeRun code) => _Run().run(bdd, code);
 
   @override
   // ignore: unnecessary_overrides
-  String toString([BddConfig config = BddConfig._default]) => super.toString(config);
+  String toString([BddConfig config = BddConfig._default]) =>
+      super.toString(config);
 }
 
 class _WhenCode extends BddCodeTerm {
   _WhenCode(BddFramework bdd, CodeRun code) : super(bdd, code);
 
-  /// A table must have a name and rows. The name is necessary if you want to read the values from
-  /// it later (if not, just pass an empty string).
+  /// A table must have a name and rows. The name is necessary if you want to
+  /// read the values from it later (if not, just pass an empty string).
   /// Example: `ctx.table('notifications').row(0).val('read') as bool`.
-  BddWhenTable table(String tableName, row row1, [row? row2, row? row3, row? row4]) =>
+  BddWhenTable table(String tableName, row row1,
+          [row? row2, row? row3, row? row4]) =>
       BddWhenTable(bdd, tableName, row1, row2, row3, row4);
 
+  /// This keyword is used to extend a 'Given', 'When', or 'Then' step.
+  /// It allows you to add multiple conditions or actions in the same step
+  /// without having to repeat the 'Given', 'When', or 'Then' keyword.
+  /// For example, "And I should see a confirmation message" could follow
+  /// a 'Then' step to further specify the expected outcomes.
   BddWhen and(String text) => BddWhen._(bdd, text, _Variation.and);
 
+  /// This keyword is used similarly to "And," but it is typically used for
+  /// negative conditions or to express a contrast with the previous step.
+  /// It's a way to extend a "Given," "When," or "Then" step with an additional
+  /// condition that contrasts with what was previously stated. For example,
+  /// after a "Then" step, you might have "But I should not be logged out."
+  /// This helps in creating more comprehensive scenarios by covering both
+  /// what should happen and what should not happen under certain conditions.
   BddWhen but(String text) => BddWhen._(bdd, text, _Variation.but);
 
+  /// Often used informally in comments within a Gherkin document to provide
+  /// additional information, clarifications, or explanations about the scenario
+  /// or steps. Comments in Gherkin are usually marked with a hashtag (#) and
+  /// are ignored when the tests are executed. A "Note" can be useful for
+  /// giving context or explaining the rationale behind a certain test scenario,
+  /// making it easier for others to understand the purpose and scope of the test.
   BddWhen note(String text) => BddWhen._(bdd, text, _Variation.note);
 
+  /// This keyword is used to describe the expected outcome or result after the
+  /// 'When' step is executed. It's used to assert that a certain outcome should
+  /// occur, which helps to validate whether the system behaves as expected.
+  /// An example is, "Then I should be redirected to the dashboard".
   BddThen then(String text) => BddThen(bdd, text);
 
   _WhenCode code(CodeRun code) => _WhenCode(bdd, code);
@@ -613,13 +756,15 @@ class _WhenCode extends BddCodeTerm {
 class BddThen extends BddTerm {
   BddThen(BddFramework bdd, String text) : super(bdd, text, _Variation.term);
 
-  BddThen._(BddFramework bdd, String text, _Variation variation) : super(bdd, text, variation);
+  BddThen._(BddFramework bdd, String text, _Variation variation)
+      : super(bdd, text, variation);
 
   @override
   String spaces(BddConfig config) => config.spaces + config.spaces;
 
   @override
-  String keyword(BddConfig config) => _keywordVariation(config) ?? config.keywords.then;
+  String keyword(BddConfig config) =>
+      _keywordVariation(config) ?? config.keywords.then;
 
   @override
   String keywordPrefix(BddConfig config) =>
@@ -630,23 +775,99 @@ class BddThen extends BddTerm {
       _keywordSuffixVariation(config) ?? config.keywordSuffix.then;
 
   @override
-  String prefix(BddConfig config) => _prefixVariation(config) ?? config.prefix.then;
+  String prefix(BddConfig config) =>
+      _prefixVariation(config) ?? config.prefix.then;
 
   @override
-  String suffix(BddConfig config) => _suffixVariation(config) ?? config.suffix.then;
+  String suffix(BddConfig config) =>
+      _suffixVariation(config) ?? config.suffix.then;
 
-  /// A table must have a name and rows. The name is necessary if you want to read the values from
-  /// it later (if not, just pass an empty string).
+  /// A table must have a name and rows. The name is necessary if you want to
+  /// read the values from it later (if not, just pass an empty string).
   /// Example: `ctx.table('notifications').row(0).val('read') as bool`.
-  BddThenTable table(String tableName, row row1, [row? row2, row? row3, row? row4]) =>
+  BddThenTable table(String tableName, row row1,
+          [row? row2, row? row3, row? row4]) =>
       BddThenTable(bdd, tableName, row1, row2, row3, row4);
 
+  /// This keyword is used to extend a 'Given', 'When', or 'Then' step.
+  /// It allows you to add multiple conditions or actions in the same step
+  /// without having to repeat the 'Given', 'When', or 'Then' keyword.
+  /// For example, "And I should see a confirmation message" could follow
+  /// a 'Then' step to further specify the expected outcomes.
   BddThen and(String text) => BddThen._(bdd, text, _Variation.and);
 
+  /// This keyword is used similarly to "And," but it is typically used for
+  /// negative conditions or to express a contrast with the previous step.
+  /// It's a way to extend a "Given," "When," or "Then" step with an additional
+  /// condition that contrasts with what was previously stated. For example,
+  /// after a "Then" step, you might have "But I should not be logged out."
+  /// This helps in creating more comprehensive scenarios by covering both
+  /// what should happen and what should not happen under certain conditions.
   BddThen but(String text) => BddThen._(bdd, text, _Variation.but);
 
+  /// Often used informally in comments within a Gherkin document to provide
+  /// additional information, clarifications, or explanations about the scenario
+  /// or steps. Comments in Gherkin are usually marked with a hashtag (#) and
+  /// are ignored when the tests are executed. A "Note" can be useful for
+  /// giving context or explaining the rationale behind a certain test scenario,
+  /// making it easier for others to understand the purpose and scope of the test.
   BddThen note(String text) => BddThen._(bdd, text, _Variation.note);
 
+  /// Examples are used in the context of Scenario Outlines. A Scenario Outline
+  /// is a template for multiple tests, and the "Examples" section provides
+  /// concrete values to be substituted into the template for each test run.
+  /// This approach allows for the specification of multiple scenarios using the
+  /// same pattern of action but with different sets of data.
+  ///
+  /// Here’s how it works:
+  ///
+  /// Scenario Outline: This is a kind of scenario that is run multiple times
+  /// with different data. It includes variables in the Given-When-Then steps,
+  /// which are indicated with angle brackets, like <variable>.
+  ///
+  /// Examples: This keyword introduces a table right below the Scenario Outline.
+  /// Each row in this table (except the header) represents a set of values that
+  /// will be passed into the Scenario Outline’s variables. The header row
+  /// defines the names of these variables.
+  ///
+  /// For example, if you have a Scenario Outline describing the login process,
+  /// you might have variables for username and password. The Examples table
+  /// will then list different combinations of usernames and passwords to test
+  /// various login scenarios.
+  ///
+  /// This approach is particularly useful for testing the same feature or
+  /// functionality under different conditions and with different inputs,
+  /// making your tests more comprehensive and robust. It also keeps your
+  /// Gherkin feature files DRY (Don't Repeat Yourself), as you avoid writing
+  /// multiple scenarios that differ only in the data they use.
+  ///
+  /// ```
+  ///   Bdd(feature)
+  ///       .scenario('Buying and Selling stocks changes the average price.')
+  ///       .given('The user has <Quantity> shares of <Ticker> at <At> dollars each.')
+  ///       .when('The user <BuyOrSell> <How many> of these stock at <Price> for each share.')
+  ///       .then('The number of shares becomes <Quantity> plus/minus <How many>.')
+  ///       .and('The average price for the stock becomes <Average Price>.')
+  ///       .example(
+  ///         val('Ticker', 'IBM'),
+  ///         val('Quantity', 10),
+  ///         val('At', 100.00),
+  ///         val('BuyOrSell', BuyOrSell.buy),
+  ///         val('How many', 2),
+  ///         val('Price', 50.00),
+  ///         val('Average Price', 91.67),
+  ///       )
+  ///       .example(
+  ///         val('Ticker', 'IBM'),
+  ///         val('Quantity', 8),
+  ///         val('At', 200.00),
+  ///         val('BuyOrSell', BuyOrSell.sell),
+  ///         val('How many', 3),
+  ///         val('Price', 30.00),
+  ///         val('Average Price', 302.00),
+  ///       )
+  ///       .run((ctx) async { ...
+  /// ```
   BddExample example(
     val v1, [
     val? v2,
@@ -664,10 +885,12 @@ class BddThen extends BddTerm {
     val? v14,
     val? v15,
   ]) =>
-      BddExample(bdd, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15);
+      BddExample(bdd, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13,
+          v14, v15);
 
   _ThenCode code(CodeRun code) => _ThenCode(bdd, code);
 
+  /// Should be used to actually provide the code that runs the BDD.
   void run(CodeRun code) => _Run().run(bdd, code);
 
   @visibleForTesting
@@ -678,18 +901,75 @@ class BddThen extends BddTerm {
 
   @override
   // ignore: unnecessary_overrides
-  String toString([BddConfig config = BddConfig._default]) => super.toString(config);
+  String toString([BddConfig config = BddConfig._default]) =>
+      super.toString(config);
 }
 
 class _ThenCode extends BddCodeTerm {
   _ThenCode(BddFramework bdd, CodeRun code) : super(bdd, code);
 
-  /// A table must have a name and rows. The name is necessary if you want to read the values from
-  /// it later (if not, just pass an empty string).
+  /// A table must have a name and rows. The name is necessary if you want to
+  /// read the values from it later (if not, just pass an empty string).
   /// Example: `ctx.table('notifications').row(0).val('read') as bool`.
-  BddThenTable table(String tableName, row row1, [row? row2, row? row3, row? row4]) =>
+  BddThenTable table(String tableName, row row1,
+          [row? row2, row? row3, row? row4]) =>
       BddThenTable(bdd, tableName, row1, row2, row3, row4);
 
+  /// Examples are used in the context of Scenario Outlines. A Scenario Outline
+  /// is a template for multiple tests, and the "Examples" section provides
+  /// concrete values to be substituted into the template for each test run.
+  /// This approach allows for the specification of multiple scenarios using the
+  /// same pattern of action but with different sets of data.
+  ///
+  /// Here’s how it works:
+  ///
+  /// Scenario Outline: This is a kind of scenario that is run multiple times
+  /// with different data. It includes variables in the Given-When-Then steps,
+  /// which are indicated with angle brackets, like <variable>.
+  ///
+  /// Examples: This keyword introduces a table right below the Scenario Outline.
+  /// Each row in this table (except the header) represents a set of values that
+  /// will be passed into the Scenario Outline’s variables. The header row
+  /// defines the names of these variables.
+  ///
+  /// For example, if you have a Scenario Outline describing the login process,
+  /// you might have variables for username and password. The Examples table
+  /// will then list different combinations of usernames and passwords to test
+  /// various login scenarios.
+  ///
+  /// This approach is particularly useful for testing the same feature or
+  /// functionality under different conditions and with different inputs,
+  /// making your tests more comprehensive and robust. It also keeps your
+  /// Gherkin feature files DRY (Don't Repeat Yourself), as you avoid writing
+  /// multiple scenarios that differ only in the data they use.
+  ///
+  /// ```
+  ///   Bdd(feature)
+  ///       .scenario('Buying and Selling stocks changes the average price.')
+  ///       .given('The user has <Quantity> shares of <Ticker> at <At> dollars each.')
+  ///       .when('The user <BuyOrSell> <How many> of these stock at <Price> for each share.')
+  ///       .then('The number of shares becomes <Quantity> plus/minus <How many>.')
+  ///       .and('The average price for the stock becomes <Average Price>.')
+  ///       .example(
+  ///         val('Ticker', 'IBM'),
+  ///         val('Quantity', 10),
+  ///         val('At', 100.00),
+  ///         val('BuyOrSell', BuyOrSell.buy),
+  ///         val('How many', 2),
+  ///         val('Price', 50.00),
+  ///         val('Average Price', 91.67),
+  ///       )
+  ///       .example(
+  ///         val('Ticker', 'IBM'),
+  ///         val('Quantity', 8),
+  ///         val('At', 200.00),
+  ///         val('BuyOrSell', BuyOrSell.sell),
+  ///         val('How many', 3),
+  ///         val('Price', 30.00),
+  ///         val('Average Price', 302.00),
+  ///       )
+  ///       .run((ctx) async { ...
+  /// ```
   BddExample example(
     val v1, [
     val? v2,
@@ -707,16 +987,36 @@ class _ThenCode extends BddCodeTerm {
     val? v14,
     val? v15,
   ]) =>
-      BddExample(bdd, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15);
+      BddExample(bdd, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13,
+          v14, v15);
 
+  /// This keyword is used to extend a 'Given', 'When', or 'Then' step.
+  /// It allows you to add multiple conditions or actions in the same step
+  /// without having to repeat the 'Given', 'When', or 'Then' keyword.
+  /// For example, "And I should see a confirmation message" could follow
+  /// a 'Then' step to further specify the expected outcomes.
   BddWhen and(String text) => BddWhen._(bdd, text, _Variation.and);
 
+  /// This keyword is used similarly to "And," but it is typically used for
+  /// negative conditions or to express a contrast with the previous step.
+  /// It's a way to extend a "Given," "When," or "Then" step with an additional
+  /// condition that contrasts with what was previously stated. For example,
+  /// after a "Then" step, you might have "But I should not be logged out."
+  /// This helps in creating more comprehensive scenarios by covering both
+  /// what should happen and what should not happen under certain conditions.
   BddWhen but(String text) => BddWhen._(bdd, text, _Variation.but);
 
+  /// Often used informally in comments within a Gherkin document to provide
+  /// additional information, clarifications, or explanations about the scenario
+  /// or steps. Comments in Gherkin are usually marked with a hashtag (#) and
+  /// are ignored when the tests are executed. A "Note" can be useful for
+  /// giving context or explaining the rationale behind a certain test scenario,
+  /// making it easier for others to understand the purpose and scope of the test.
   BddWhen note(String text) => BddWhen._(bdd, text, _Variation.note);
 
   _ThenCode code(CodeRun code) => _ThenCode(bdd, code);
 
+  /// Should be used to actually provide the code that runs the BDD.
   void run(CodeRun code) => _Run().run(bdd, code);
 
   @visibleForTesting
@@ -732,8 +1032,10 @@ abstract class BddTableTerm extends BddTerm {
 
   final List<row> rows = [];
 
-  BddTableTerm(BddFramework bdd, this.tableName) : super(bdd, '', _Variation.term);
+  BddTableTerm(BddFramework bdd, this.tableName)
+      : super(bdd, '', _Variation.term);
 
+  /// Should be used to actually provide the code that runs the BDD.
   void run(CodeRun code) => _Run().run(bdd, code);
 
   /// Here we have something like:
@@ -749,7 +1051,8 @@ abstract class BddTableTerm extends BddTerm {
       for (val value in _row.values) {
         int? maxValue1 = sizes[value.name];
         int maxValue2 = max(value.name.length, value.toString(config).length);
-        int maxValue = (maxValue1 == null) ? maxValue2 : max(maxValue1, maxValue2);
+        int maxValue =
+            (maxValue1 == null) ? maxValue2 : max(maxValue1, maxValue2);
 
         sizes[value.name] = maxValue;
       }
@@ -760,8 +1063,10 @@ abstract class BddTableTerm extends BddTerm {
     var endOfLineChar = config.endOfLineChar;
     var tableDivider = config.tableDivider;
 
-    String rightAlignPadding =
-        spaces + spaces + spaces + ((config.rightAlignKeywords) ? config.padChar * 4 : '');
+    String rightAlignPadding = spaces +
+        spaces +
+        spaces +
+        ((config.rightAlignKeywords) ? config.padChar * 4 : '');
 
     String header = rightAlignPadding +
         '$tableDivider$space' +
@@ -818,16 +1123,33 @@ abstract class BddTableTerm extends BddTerm {
 
 class BddExample extends BddTerm {
   //
-  BddExample(BddFramework bdd, val v1, val? v2, val? v3, val? v4, val? v5, val? v6, val? v7,
-      val? v8, val? v9, val? v10, val? v11, val? v12, val? v13, val? v14, val? v15)
+  BddExample(
+      BddFramework bdd,
+      val v1,
+      val? v2,
+      val? v3,
+      val? v4,
+      val? v5,
+      val? v6,
+      val? v7,
+      val? v8,
+      val? v9,
+      val? v10,
+      val? v11,
+      val? v12,
+      val? v13,
+      val? v14,
+      val? v15)
       : super(bdd, '', _Variation.term) {
-    var set =
-        [v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15].whereNotNull().toSet();
+    var set = [v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15]
+        .whereNotNull()
+        .toSet();
     rows.add(set);
   }
 
   final List<Set<val>> rows = [];
 
+  /// Should be used to actually provide the code that runs the BDD.
   void run(CodeRun code) => _Run().run(bdd, code);
 
   /// Here we have something like:
@@ -843,7 +1165,8 @@ class BddExample extends BddTerm {
       for (val value in row) {
         int? maxValue1 = sizes[value.name];
         int maxValue2 = max(value.name.length, value.toString(config).length);
-        int maxValue = (maxValue1 == null) ? maxValue2 : max(maxValue1, maxValue2);
+        int maxValue =
+            (maxValue1 == null) ? maxValue2 : max(maxValue1, maxValue2);
 
         sizes[value.name] = maxValue;
       }
@@ -854,8 +1177,10 @@ class BddExample extends BddTerm {
     var endOfLineChar = config.endOfLineChar;
     var tableDivider = config.tableDivider;
 
-    String rightAlignPadding =
-        spaces + spaces + spaces + ((config.rightAlignKeywords) ? config.padChar * 4 : '');
+    String rightAlignPadding = spaces +
+        spaces +
+        spaces +
+        ((config.rightAlignKeywords) ? config.padChar * 4 : '');
 
     String header = rightAlignPadding +
         '$tableDivider$space' +
@@ -913,7 +1238,8 @@ class BddExample extends BddTerm {
   String spaces(BddConfig config) => config.spaces + config.spaces;
 
   @override
-  String keyword(BddConfig config) => _keywordVariation(config) ?? config.keywords.examples;
+  String keyword(BddConfig config) =>
+      _keywordVariation(config) ?? config.keywords.examples;
 
   @override
   String keywordPrefix(BddConfig config) =>
@@ -924,11 +1250,68 @@ class BddExample extends BddTerm {
       _keywordSuffixVariation(config) ?? config.keywordSuffix.examples;
 
   @override
-  String prefix(BddConfig config) => _prefixVariation(config) ?? config.prefix.examples;
+  String prefix(BddConfig config) =>
+      _prefixVariation(config) ?? config.prefix.examples;
 
   @override
-  String suffix(BddConfig config) => _suffixVariation(config) ?? config.suffix.examples;
+  String suffix(BddConfig config) =>
+      _suffixVariation(config) ?? config.suffix.examples;
 
+  /// Examples are used in the context of Scenario Outlines. A Scenario Outline
+  /// is a template for multiple tests, and the "Examples" section provides
+  /// concrete values to be substituted into the template for each test run.
+  /// This approach allows for the specification of multiple scenarios using the
+  /// same pattern of action but with different sets of data.
+  ///
+  /// Here’s how it works:
+  ///
+  /// Scenario Outline: This is a kind of scenario that is run multiple times
+  /// with different data. It includes variables in the Given-When-Then steps,
+  /// which are indicated with angle brackets, like <variable>.
+  ///
+  /// Examples: This keyword introduces a table right below the Scenario Outline.
+  /// Each row in this table (except the header) represents a set of values that
+  /// will be passed into the Scenario Outline’s variables. The header row
+  /// defines the names of these variables.
+  ///
+  /// For example, if you have a Scenario Outline describing the login process,
+  /// you might have variables for username and password. The Examples table
+  /// will then list different combinations of usernames and passwords to test
+  /// various login scenarios.
+  ///
+  /// This approach is particularly useful for testing the same feature or
+  /// functionality under different conditions and with different inputs,
+  /// making your tests more comprehensive and robust. It also keeps your
+  /// Gherkin feature files DRY (Don't Repeat Yourself), as you avoid writing
+  /// multiple scenarios that differ only in the data they use.
+  ///
+  /// ```
+  ///   Bdd(feature)
+  ///       .scenario('Buying and Selling stocks changes the average price.')
+  ///       .given('The user has <Quantity> shares of <Ticker> at <At> dollars each.')
+  ///       .when('The user <BuyOrSell> <How many> of these stock at <Price> for each share.')
+  ///       .then('The number of shares becomes <Quantity> plus/minus <How many>.')
+  ///       .and('The average price for the stock becomes <Average Price>.')
+  ///       .example(
+  ///         val('Ticker', 'IBM'),
+  ///         val('Quantity', 10),
+  ///         val('At', 100.00),
+  ///         val('BuyOrSell', BuyOrSell.buy),
+  ///         val('How many', 2),
+  ///         val('Price', 50.00),
+  ///         val('Average Price', 91.67),
+  ///       )
+  ///       .example(
+  ///         val('Ticker', 'IBM'),
+  ///         val('Quantity', 8),
+  ///         val('At', 200.00),
+  ///         val('BuyOrSell', BuyOrSell.sell),
+  ///         val('How many', 3),
+  ///         val('Price', 30.00),
+  ///         val('Average Price', 302.00),
+  ///       )
+  ///       .run((ctx) async { ...
+  /// ```
   BddExample example(
     val v1, [
     val? v2,
@@ -946,8 +1329,9 @@ class BddExample extends BddTerm {
     val? v14,
     val? v15,
   ]) {
-    rows.add(
-        [v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15].whereNotNull().toSet());
+    rows.add([v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15]
+        .whereNotNull()
+        .toSet());
     return this;
   }
 
@@ -1013,56 +1397,177 @@ class BddGivenTable extends BddTableTerm {
     ].whereNotNull());
   }
 
+  /// This keyword is used to extend a 'Given', 'When', or 'Then' step.
+  /// It allows you to add multiple conditions or actions in the same step
+  /// without having to repeat the 'Given', 'When', or 'Then' keyword.
+  /// For example, "And I should see a confirmation message" could follow
+  /// a 'Then' step to further specify the expected outcomes.
   BddGiven and(String text) => BddGiven._(bdd, text, _Variation.and);
 
+  /// This keyword is used similarly to "And," but it is typically used for
+  /// negative conditions or to express a contrast with the previous step.
+  /// It's a way to extend a "Given," "When," or "Then" step with an additional
+  /// condition that contrasts with what was previously stated. For example,
+  /// after a "Then" step, you might have "But I should not be logged out."
+  /// This helps in creating more comprehensive scenarios by covering both
+  /// what should happen and what should not happen under certain conditions.
   BddGiven but(String text) => BddGiven._(bdd, text, _Variation.but);
 
+  /// Often used informally in comments within a Gherkin document to provide
+  /// additional information, clarifications, or explanations about the scenario
+  /// or steps. Comments in Gherkin are usually marked with a hashtag (#) and
+  /// are ignored when the tests are executed. A "Note" can be useful for
+  /// giving context or explaining the rationale behind a certain test scenario,
+  /// making it easier for others to understand the purpose and scope of the test.
   BddGiven note(String text) => BddGiven._(bdd, text, _Variation.note);
 
+  /// This keyword indicates the specific action taken by the user or the system.
+  /// It's the trigger for the behavior that you're specifying. For instance,
+  /// "When I click the 'Submit' button" describes the action taken after the
+  /// initial context is set by the 'Given' step.
   BddWhen when(String text) => BddWhen(bdd, text);
 
   _GivenCode code(CodeRun code) => _GivenCode(bdd, code);
 
   @override
   // ignore: unnecessary_overrides
-  String toString([BddConfig config = BddConfig._default]) => super.toString(config);
+  String toString([BddConfig config = BddConfig._default]) =>
+      super.toString(config);
 }
 
 class BddWhenTable extends BddTableTerm {
   //
-  BddWhenTable(BddFramework bdd, String tableName, row row1, [row? row2, row? row3, row? row4])
+  BddWhenTable(BddFramework bdd, String tableName, row row1,
+      [row? row2, row? row3, row? row4])
       : super(bdd, tableName) {
     rows.addAll([row1, row2, row3, row4].whereNotNull());
   }
 
+  /// This keyword is used to extend a 'Given', 'When', or 'Then' step.
+  /// It allows you to add multiple conditions or actions in the same step
+  /// without having to repeat the 'Given', 'When', or 'Then' keyword.
+  /// For example, "And I should see a confirmation message" could follow
+  /// a 'Then' step to further specify the expected outcomes.
   BddWhen and(String text) => BddWhen._(bdd, text, _Variation.and);
 
+  /// This keyword is used similarly to "And," but it is typically used for
+  /// negative conditions or to express a contrast with the previous step.
+  /// It's a way to extend a "Given," "When," or "Then" step with an additional
+  /// condition that contrasts with what was previously stated. For example,
+  /// after a "Then" step, you might have "But I should not be logged out."
+  /// This helps in creating more comprehensive scenarios by covering both
+  /// what should happen and what should not happen under certain conditions.
   BddWhen but(String text) => BddWhen._(bdd, text, _Variation.but);
 
+  /// Often used informally in comments within a Gherkin document to provide
+  /// additional information, clarifications, or explanations about the scenario
+  /// or steps. Comments in Gherkin are usually marked with a hashtag (#) and
+  /// are ignored when the tests are executed. A "Note" can be useful for
+  /// giving context or explaining the rationale behind a certain test scenario,
+  /// making it easier for others to understand the purpose and scope of the test.
   BddWhen note(String text) => BddWhen._(bdd, text, _Variation.note);
 
+  /// This keyword is used to describe the expected outcome or result after the
+  /// 'When' step is executed. It's used to assert that a certain outcome should
+  /// occur, which helps to validate whether the system behaves as expected.
+  /// An example is, "Then I should be redirected to the dashboard".
   BddThen then(String text) => BddThen(bdd, text);
 
   _WhenCode code(CodeRun code) => _WhenCode(bdd, code);
 
   @override
   // ignore: unnecessary_overrides
-  String toString([BddConfig config = BddConfig._default]) => super.toString(config);
+  String toString([BddConfig config = BddConfig._default]) =>
+      super.toString(config);
 }
 
 class BddThenTable extends BddTableTerm {
   //
-  BddThenTable(BddFramework bdd, String tableName, row row1, [row? row2, row? row3, row? row4])
+  BddThenTable(BddFramework bdd, String tableName, row row1,
+      [row? row2, row? row3, row? row4])
       : super(bdd, tableName) {
     rows.addAll([row1, row2, row3, row4].whereNotNull());
   }
 
+  /// This keyword is used to extend a 'Given', 'When', or 'Then' step.
+  /// It allows you to add multiple conditions or actions in the same step
+  /// without having to repeat the 'Given', 'When', or 'Then' keyword.
+  /// For example, "And I should see a confirmation message" could follow
+  /// a 'Then' step to further specify the expected outcomes.
   BddThen and(String text) => BddThen._(bdd, text, _Variation.and);
 
+  /// This keyword is used similarly to "And," but it is typically used for
+  /// negative conditions or to express a contrast with the previous step.
+  /// It's a way to extend a "Given," "When," or "Then" step with an additional
+  /// condition that contrasts with what was previously stated. For example,
+  /// after a "Then" step, you might have "But I should not be logged out."
+  /// This helps in creating more comprehensive scenarios by covering both
+  /// what should happen and what should not happen under certain conditions.
   BddThen but(String text) => BddThen._(bdd, text, _Variation.but);
 
+  /// Often used informally in comments within a Gherkin document to provide
+  /// additional information, clarifications, or explanations about the scenario
+  /// or steps. Comments in Gherkin are usually marked with a hashtag (#) and
+  /// are ignored when the tests are executed. A "Note" can be useful for
+  /// giving context or explaining the rationale behind a certain test scenario,
+  /// making it easier for others to understand the purpose and scope of the test.
   BddThen note(String text) => BddThen._(bdd, text, _Variation.note);
 
+  /// Examples are used in the context of Scenario Outlines. A Scenario Outline
+  /// is a template for multiple tests, and the "Examples" section provides
+  /// concrete values to be substituted into the template for each test run.
+  /// This approach allows for the specification of multiple scenarios using the
+  /// same pattern of action but with different sets of data.
+  ///
+  /// Here’s how it works:
+  ///
+  /// Scenario Outline: This is a kind of scenario that is run multiple times
+  /// with different data. It includes variables in the Given-When-Then steps,
+  /// which are indicated with angle brackets, like <variable>.
+  ///
+  /// Examples: This keyword introduces a table right below the Scenario Outline.
+  /// Each row in this table (except the header) represents a set of values that
+  /// will be passed into the Scenario Outline’s variables. The header row
+  /// defines the names of these variables.
+  ///
+  /// For example, if you have a Scenario Outline describing the login process,
+  /// you might have variables for username and password. The Examples table
+  /// will then list different combinations of usernames and passwords to test
+  /// various login scenarios.
+  ///
+  /// This approach is particularly useful for testing the same feature or
+  /// functionality under different conditions and with different inputs,
+  /// making your tests more comprehensive and robust. It also keeps your
+  /// Gherkin feature files DRY (Don't Repeat Yourself), as you avoid writing
+  /// multiple scenarios that differ only in the data they use.
+  ///
+  /// ```
+  ///   Bdd(feature)
+  ///       .scenario('Buying and Selling stocks changes the average price.')
+  ///       .given('The user has <Quantity> shares of <Ticker> at <At> dollars each.')
+  ///       .when('The user <BuyOrSell> <How many> of these stock at <Price> for each share.')
+  ///       .then('The number of shares becomes <Quantity> plus/minus <How many>.')
+  ///       .and('The average price for the stock becomes <Average Price>.')
+  ///       .example(
+  ///         val('Ticker', 'IBM'),
+  ///         val('Quantity', 10),
+  ///         val('At', 100.00),
+  ///         val('BuyOrSell', BuyOrSell.buy),
+  ///         val('How many', 2),
+  ///         val('Price', 50.00),
+  ///         val('Average Price', 91.67),
+  ///       )
+  ///       .example(
+  ///         val('Ticker', 'IBM'),
+  ///         val('Quantity', 8),
+  ///         val('At', 200.00),
+  ///         val('BuyOrSell', BuyOrSell.sell),
+  ///         val('How many', 3),
+  ///         val('Price', 30.00),
+  ///         val('Average Price', 302.00),
+  ///       )
+  ///       .run((ctx) async { ...
+  /// ```
   BddExample example(
     val v1, [
     val? v2,
@@ -1080,14 +1585,17 @@ class BddThenTable extends BddTableTerm {
     val? v14,
     val? v15,
   ]) =>
-      BddExample(bdd, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15);
+      BddExample(bdd, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13,
+          v14, v15);
 
   _ThenCode code(CodeRun code) => _ThenCode(bdd, code);
 
   @override
   // ignore: unnecessary_overrides
-  String toString([BddConfig config = BddConfig._default]) => super.toString(config);
+  String toString([BddConfig config = BddConfig._default]) =>
+      super.toString(config);
 
+  /// Should be used to actually provide the code that runs the BDD.
   @override
   void run(CodeRun code) => _Run().run(bdd, code);
 
@@ -1105,10 +1613,12 @@ class TestResult {
 
   Iterable<BddTerm> get terms => _bdd.textTerms;
 
-  List<String> toMap([BddConfig config = BddConfig._default]) => _bdd.toMap(config);
+  List<String> toMap([BddConfig config = BddConfig._default]) =>
+      _bdd.toMap(config);
 
   @override
-  String toString([BddConfig config = BddConfig._default]) => _bdd.toString(config: config);
+  String toString([BddConfig config = BddConfig._default]) =>
+      _bdd.toString(config: config);
 
   bool get wasSkipped => _bdd._skip;
 
@@ -1136,7 +1646,8 @@ class BddFeature {
 
   BddFeature(this.title, {this.description}) : _bdds = [];
 
-  List<TestResult> get testResults => _bdds.map((bdd) => TestResult(bdd)).toList();
+  List<TestResult> get testResults =>
+      _bdds.map((bdd) => TestResult(bdd)).toList();
 
   List<BddFramework> result = [];
 
@@ -1171,7 +1682,9 @@ class BddFeature {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is BddFeature && runtimeType == other.runtimeType && title == other.title;
+      other is BddFeature &&
+          runtimeType == other.runtimeType &&
+          title == other.title;
 
   @override
   int get hashCode => title.hashCode;
@@ -1216,11 +1729,13 @@ abstract class BddReporter {
     tearDownAll(() async {
       stdout.writeln(yellow);
       stdout.writeln('RESULTS ══════════════════════════════════════════════');
-      stdout.writeln('TOTAL: ${runInfo.totalTestCount} tests (${runInfo.testCount} BDDs)');
+      stdout.writeln(
+          'TOTAL: ${runInfo.totalTestCount} tests (${runInfo.testCount} BDDs)');
       stdout.writeln('PASSED: ${runInfo.passedCount} tests');
       stdout.writeln('FAILED: ${runInfo.failedCount} tests');
       stdout.writeln('SKIPPED: ${runInfo.skipCount} tests');
-      stdout.writeln('══════════════════════════════════════════════════════$reset');
+      stdout.writeln(
+          '══════════════════════════════════════════════════════$reset');
       stdout.writeln('\n');
 
       for (BddReporter _reporter in BddReporter._reporters) {
@@ -1239,7 +1754,8 @@ abstract class BddReporter {
 
     // We must find out if we already have a feature with the given title.
     // If we do, use the one we already have.
-    BddFeature? feature = features.firstWhereOrNull((feature) => feature.title == _feature.title);
+    BddFeature? feature =
+        features.firstWhereOrNull((feature) => feature.title == _feature.title);
 
     // If we don't, use the new one provided, and put it in the features set.
     if (feature == null) {
@@ -1254,7 +1770,8 @@ abstract class BddReporter {
   /// Keeps A-Z 0-9, make it lowercase, and change spaces into underline.
   String normalizeFileName(String name) =>
       name.trim().splitMapJoin(RegExp(r"""[ "'#<$+%>!`&*|{?=}/:\\@^.]"""),
-          onMatch: (m) => m[0] == ' ' ? '_' : '', onNonMatch: (m) => m.toLowerCase());
+          onMatch: (m) => m[0] == ' ' ? '_' : '',
+          onNonMatch: (m) => m.toLowerCase());
 }
 
 class TestRunConfig {
@@ -1264,7 +1781,8 @@ class TestRunConfig {
   final Map<String, dynamic>? onPlatform;
   final int? retry;
 
-  TestRunConfig({this.testOn, this.timeout, this.tags, this.onPlatform, this.retry});
+  TestRunConfig(
+      {this.testOn, this.timeout, this.tags, this.onPlatform, this.retry});
 }
 
 class _RunInfo {
@@ -1398,18 +1916,32 @@ class _Run {
         final ctx = BddContext(example, tables);
 
         try {
-          /// Run all bdd code.
-          for (CodeRun codeRun in bdd.codeTerms.map((BddCodeTerm codeTerm) => codeTerm.codeRun)) {
+          // Run all bdd code.
+          for (CodeRun codeRun in bdd.codeTerms
+              .map((BddCodeTerm codeTerm) => codeTerm.codeRun)) {
             await codeRun?.call(ctx);
           }
-        } catch (error, stacktrace) {
+        }
+        //
+        catch (error, stacktrace) {
           bdd.passed.add(false);
           BddReporter.runInfo.failedCount++;
           print("\n");
-          registerException(error, stacktrace);
+
+          var errorDetails = FlutterErrorDetails(
+            library: 'BDD Framework',
+            exception: error,
+            stack: stacktrace,
+            stackFilter: _stackFilter,
+          );
+
+          reportTestException(errorDetails, "");
+
           print(_fail(_testCountStr));
           return;
-        } finally {
+        }
+        //
+        finally {
           _cleanTargetPlatformOverride();
         }
 
@@ -1425,6 +1957,17 @@ class _Run {
       retry: totalRetries,
       testOn: bdd._config?.testOn,
     );
+  }
+
+  static Iterable<String> _stackFilter(Iterable<String> frames) {
+    // Removes the frames we are not interested in.
+    var filteredFrames = frames.where((frame) =>
+        !frame.contains("package:matcher/") &&
+        !frame.contains("package:flutter_test/src/widget_tester.dart") &&
+        !frame.contains("package:bdd_framework/src/") &&
+        !frame.contains("package:test_api/src/"));
+
+    return FlutterError.defaultStackFilter(filteredFrames);
   }
 
   // static const white = "\x1B[38;5;255m";
@@ -1489,7 +2032,8 @@ class _TestRun {
     if (!bdd._skip)
       try {
         /// Run all bdd code.
-        Iterable<CodeRun> codeRuns = bdd.codeTerms.map((BddCodeTerm codeTerm) => codeTerm.codeRun);
+        Iterable<CodeRun> codeRuns =
+            bdd.codeTerms.map((BddCodeTerm codeTerm) => codeTerm.codeRun);
         for (CodeRun codeRun in codeRuns) {
           codeRun?.call(ctx);
         }
@@ -1523,7 +2067,8 @@ void _ignoreOverflowErrors() {
             .map((diagnostic) => diagnostic.value)
             .whereType<List<Object>>()
             .expand((value) => value)
-            .any((data) => data.toString().startsWith("A RenderFlex overflowed by"));
+            .any((data) =>
+                data.toString().startsWith("A RenderFlex overflowed by"));
 
     if (ifOverflow)
       FlutterError.dumpErrorToConsole(details);
@@ -1552,4 +2097,5 @@ void _ignoreOverflowErrors() {
 /// Same explanation, slightly different:
 /// https://stackoverflow.com/a/57628196/6696558
 ///
-void _cleanTargetPlatformOverride() => (debugDefaultTargetPlatformOverride = null);
+void _cleanTargetPlatformOverride() =>
+    (debugDefaultTargetPlatformOverride = null);

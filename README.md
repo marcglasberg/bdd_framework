@@ -353,8 +353,8 @@ Feature: Buying and Selling Stocks
   Scenario: Selling stocks.
     Given The user has 120 dollars in cash-balance.
     And The current stock prices are as such:
-      | Symbol | Price |
-      | APPL   | 50.25 |
+      | Ticker | Price |
+      | AAPL   | 50.25 |
       | IBM    | 30.0  |
       | GOOG   | 60.75 |
     When ...
@@ -371,12 +371,12 @@ For example, this BDD should be run **twice**:
 Feature: Buying and Selling Stocks
 
   Scenario Outline: Buying and Selling stocks changes the average price.
-    Given The user has <Quantity> shares of <Symbol> at <At> dollars each.
+    Given The user has <Quantity> shares of <Ticker> at <At> dollars each.
     When The user <BuyOrSell> <How many> of these stock at <Price> for each share.
     Then The number of shares becomes <Quantity> plus/minus <How many>.
     And The average price for the stock becomes <Average Price>.
     Examples:
-      | Symbol | Quantity | At    | BuyOrSell | How many | Price | Average Price |
+      | Ticker | Quantity | At    | BuyOrSell | How many | Price | Average Price |
       | IBM    | 10       | 100.0 | buy       | 2        | 50.0  | 91.67         |
       | IBM    | 8        | 200.0 | sell      | 3        | 30.0  | 302.0         |
 ```
@@ -580,12 +580,12 @@ Feature: Buying and Selling Stocks
   Scenario: Selling stocks.
 
     Given The user has 120 dollars in cash-balance.
-    And Apple (APPL) costs $50.25, IBM costs $30.0, and Google (GOOG) costs $60.75.
-    And The user Portfolio contains 5 APPL, 3 IBM and 12 GOOG.
+    And Apple (AAPL) costs $50.25, IBM costs $30.0, and Google (GOOG) costs $60.75.
+    And The user Portfolio contains 5 AAPL, 3 IBM and 12 GOOG.
     When The user sells 1 IBM.
 
     Then The user now has 2 IBM.
-    And APPL is still 5, and GOOG is still 12.
+    And AAPL is still 5, and GOOG is still 12.
     And The cash-balance is now 150 dollars.
 ```
 
@@ -598,20 +598,20 @@ Feature: Buying and Selling Stocks
 
     Given The user has 120 dollars in cash-balance.
     And The current stock prices are as such:
-      | Symbol | Price |
-      | APPL   | 50.25 |
+      | Ticker | Price |
+      | AAPL   | 50.25 |
       | IBM    | 30.0  |
       | GOOG   | 60.75 |
     And The user Portfolio contains:
-      | Symbol | Quantity |
-      | APPL   | 5        |
+      | Ticker | Quantity |
+      | AAPL   | 5        |
       | IBM    | 3        |
       | GOOG   | 12       |
 
     When The user sells 1 IBM.
 
     Then The user now has 2 IBM.
-    And APPL is still 5, and GOOG is still 12.
+    And AAPL is still 5, and GOOG is still 12.
     And The cash-balance is now 150 dollars.
 ```
 
@@ -625,16 +625,16 @@ Bdd(feature)
   .and('The current stock prices are as such:')
   .table(
      'Available Stocks',
-        row(val('Symbol', 'APPL'), val('Price', 50.25)),
-        row(val('Symbol', 'IBM'), val('Price', 30.00)),
-        row(val('Symbol', 'GOOG'), val('Price', 60.75)),
+        row(val('Ticker', 'AAPL'), val('Price', 50.25)),
+        row(val('Ticker', 'IBM'), val('Price', 30.00)),
+        row(val('Ticker', 'GOOG'), val('Price', 60.75)),
   )
   .and('The user Portfolio contains:')
   .table(
      'Portfolio',
-        row(val('Symbol', 'APPL'), val('Quantity', 5)),
-        row(val('Symbol', 'IBM'), val('Quantity', 3)),
-        row(val('Symbol', 'GOOG'), val('Quantity', 12)),
+        row(val('Ticker', 'AAPL'), val('Quantity', 5)),
+        row(val('Ticker', 'IBM'), val('Quantity', 3)),
+        row(val('Ticker', 'GOOG'), val('Quantity', 12)),
   )
   .when( ...
   .then( ...
@@ -649,7 +649,7 @@ state = AppState.initialState();
 // Given:
 state.portfolio.cashBalance.set(120.00);
 
-var appl = state.availableStocks.findBySymbol('APPL');
+var appl = state.availableStocks.findBySymbol('AAPL');
 var ibm = state.availableStocks.findBySymbol('IBM');
 var goog = state.availableStocks.findBySymbol('GOOG');
 
@@ -657,7 +657,7 @@ appl.setCurrentPrice(50.25);
 ibm.setCurrentPrice(30.00);
 goog.setCurrentPrice(60.75);
 
-state.portfolio.set('APPL', quantity: 5, averagePrice: 100);
+state.portfolio.set('AAPL', quantity: 5, averagePrice: 100);
 state.portfolio.set('IBM', quantity: 3, averagePrice: 100);
 state.portfolio.set('GOOG', quantity: 12, averagePrice: 100);
 
@@ -666,7 +666,7 @@ state.portfolio.sell(ibm);
 
 // Then:
 expect(state.portfolio.howManyStocks('IBM'), 2);
-expect(state.portfolio.howManyStocks('APPL'), 5);
+expect(state.portfolio.howManyStocks('AAPL'), 5);
 expect(state.portfolio.howManyStocks('GOOG'), 12);
 expect(state.portfolio.cashBalance, CashBalance(150.00));
 ```
@@ -683,7 +683,7 @@ You can get a table by its name, and from there get the rows and the values:
 ```
 var table = ctx.table('Available Stocks');
 var rows = table.rows;
-var value = rows[0].val('Symbol');
+var value = rows[0].val('Ticker');
 ```
 
 The above BDD without hard-code values could then be written as shown below:
@@ -699,10 +699,10 @@ state.portfolio.cashBalance.set(120.00);
 var availableStocksTable = ctx.table('Available Stocks').rows;
 
 for (var row in availableStocksTable) {
-  String symbol = row.val('Symbol');
+  String ticker = row.val('Ticker');
   double price = row.val('Price');
 
-  var stock = state.availableStocks.findBySymbol(symbol);
+  var stock = state.availableStocks.findBySymbol(ticker);
   stock.setCurrentPrice(price);
 }
 
@@ -711,9 +711,9 @@ for (var row in availableStocksTable) {
 var portfolioTable = ctx.table('Portfolio').rows;
 
 for (var row in portfolioTable) {
-  String symbol = row.val('Symbol');
+  String ticker = row.val('Ticker');
   int quantity = row.val('Quantity');
-  state.portfolio.set(symbol, quantity: quantity, averagePrice: 100);
+  state.portfolio.set(ticker, quantity: quantity, averagePrice: 100);
 }
 
 // When:
@@ -722,7 +722,7 @@ state.portfolio.sell(ibm);
 
 // Then:
 expect(state.portfolio.howManyStocks('IBM'), 2);
-expect(state.portfolio.howManyStocks('APPL'), 5);
+expect(state.portfolio.howManyStocks('AAPL'), 5);
 expect(state.portfolio.howManyStocks('GOOG'), 12);
 expect(state.portfolio.cashBalance, CashBalance(150.00));
 ```
@@ -749,7 +749,7 @@ Feature: Buying and Selling Stocks
 
   Scenario Outline: Buying and Selling stocks changes the average price.
 
-    Given The user has <Quantity> shares of <Symbol> at <At> dollars each.
+    Given The user has <Quantity> shares of <Ticker> at <At> dollars each.
 
     When The user <BuyOrSell> <How many> of these stock at <Price> for each share.
 
@@ -757,7 +757,7 @@ Feature: Buying and Selling Stocks
     And The average price for the stock becomes <Average Price>.
 
     Examples:
-      | Symbol | Quantity | At    | BuyOrSell | How many | Price | Average Price |
+      | Ticker | Quantity | At    | BuyOrSell | How many | Price | Average Price |
       | IBM    | 10       | 100.0 | buy       | 2        | 50.0  | 91.67         |
       | IBM    | 8        | 200.0 | sell      | 3        | 30.0  | 302.0         |
 ``` 
@@ -772,7 +772,7 @@ Bdd(feature)
   .then( ...
   .and( ...
   .example(
-    val('Symbol', 'IBM'),
+    val('Ticker', 'IBM'),
     val('Quantity', 10),
     val('At', 100.00),
     val('BuyOrSell', BuyOrSell.buy),
@@ -781,7 +781,7 @@ Bdd(feature)
     val('Average Price', 91.67),
   )
   .example(
-    val('Symbol', 'IBM'),
+    val('Ticker', 'IBM'),
     val('Quantity', 8),
     val('At', 200.00),
     val('BuyOrSell', BuyOrSell.sell),
@@ -800,7 +800,7 @@ using the `ctx.example` object:
 
 ```dart
 
-String symbol = ctx.example.val('Symbol');
+String ticker = ctx.example.val('Ticker');
 int quantity = ctx.example.val('Quantity');
 double at = ctx.example.val('At');
 BuyOrSell buyOrSell = ctx.example.val('BuyOrSell');
@@ -815,7 +815,7 @@ You can also write it like this, if you want:
 
 var val = ctx.example.val;
 
-String symbol = val('Symbol');
+String ticker = val('Ticker');
 int quantity = val('Quantity');
 double at = val('At');
 BuyOrSell buyOrSell = val('BuyOrSell');
@@ -835,12 +835,12 @@ Here is the complete code:
 ```
 Bdd(feature)
       .scenario('Buying and Selling stocks changes the average price.')
-      .given('The user has <Quantity> shares of <Symbol> at <At> dollars each.')
+      .given('The user has <Quantity> shares of <Ticker> at <At> dollars each.')
       .when('The user <BuyOrSell> <How many> of these stock at <Price> for each share.')
       .then('The number of shares is becomes <Quantity> plus/minus <How many>.')
       .and('The average price for the stock becomes <Average Price>.')
       .example(
-        val('Symbol', 'IBM'),
+        val('Ticker', 'IBM'),
         val('Quantity', 10),
         val('At', 100.00),
         val('BuyOrSell', BuyOrSell.buy),
@@ -849,7 +849,7 @@ Bdd(feature)
         val('Average Price', 91.67),
       )
       .example(
-        val('Symbol', 'IBM'),
+        val('Ticker', 'IBM'),
         val('Quantity', 8),
         val('At', 200.00),
         val('BuyOrSell', BuyOrSell.sell),
@@ -859,7 +859,7 @@ Bdd(feature)
       )
       .run((ctx) async {
     
-    String symbol = ctx.example.val('Symbol');
+    String ticker = ctx.example.val('Ticker');
     int quantity = ctx.example.val('Quantity');
     double at = ctx.example.val('At');
     BuyOrSell buyOrSell = ctx.example.val('BuyOrSell');
@@ -872,17 +872,17 @@ Bdd(feature)
     state.portfolio.cashBalance.set(100000.00);
 
     // Given:
-    var availableStock = state.availableStocks.findBySymbol(symbol);
+    var availableStock = state.availableStocks.findBySymbol(ticker);
     availableStock.setCurrentPrice(at);
-    state.portfolio.set(symbol, quantity: quantity, averagePrice: at);
+    state.portfolio.set(ticker, quantity: quantity, averagePrice: at);
 
     // When:
     availableStock.setCurrentPrice(price);
     state.portfolio.buyOrSell(availableStock, buyOrSell, howMany: how);
 
     // Then:
-    expect(state.portfolio.howManyStocks(symbol), quantity + (buyOrSell.isBuy ? how : -how));
-    expect(state.portfolio.getStock(symbol)!.averagePrice, averagePrice);
+    expect(state.portfolio.howManyStocks(ticker), quantity + (buyOrSell.isBuy ? how : -how));
+    expect(state.portfolio.getStock(ticker)!.averagePrice, averagePrice);
   });
 ```
 

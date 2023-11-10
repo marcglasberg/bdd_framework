@@ -18,13 +18,14 @@ enum BuyOrSell {
   bool get isBuy => this == buy;
 }
 
+/// Stocks the user has.
 class Stock {
-  String symbol;
+  String ticker;
   int howManyShares;
   double averagePrice;
 
   Stock({
-    required this.symbol,
+    required this.ticker,
     required this.howManyShares,
     required this.averagePrice,
   });
@@ -38,12 +39,13 @@ class Stock {
       identical(this, other) ||
       other is Stock &&
           runtimeType == other.runtimeType &&
-          symbol == other.symbol &&
+          ticker == other.ticker &&
           howManyShares == other.howManyShares &&
           averagePrice == other.averagePrice;
 
   @override
-  int get hashCode => symbol.hashCode ^ howManyShares.hashCode ^ averagePrice.hashCode;
+  int get hashCode =>
+      ticker.hashCode ^ howManyShares.hashCode ^ averagePrice.hashCode;
 }
 
 class CashBalance {
@@ -72,7 +74,9 @@ class CashBalance {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is CashBalance && runtimeType == other.runtimeType && _amount == other._amount;
+      other is CashBalance &&
+          runtimeType == other.runtimeType &&
+          _amount == other._amount;
 
   @override
   int get hashCode => _amount.hashCode;
@@ -87,36 +91,43 @@ class Portfolio {
     required this.cashBalance,
   });
 
-  void clearStock(String symbol) => set(symbol, quantity: 0, averagePrice: 0);
+  void clearStock(String ticker) =>
+      setStockInPortfolio(ticker, quantity: 0, averagePrice: 0);
 
-  void set(
-    String symbol, {
+  void setStockInPortfolio(
+    String ticker, {
     required int quantity,
     required double averagePrice,
   }) {
-    stocks.removeWhere((var stock) => stock.symbol == symbol);
+    stocks.removeWhere((var stock) => stock.ticker == ticker);
 
     if (quantity > 0) {
-      stocks.add(Stock(symbol: symbol, howManyShares: quantity, averagePrice: averagePrice));
+      var newStock = Stock(
+          ticker: ticker, howManyShares: quantity, averagePrice: averagePrice);
+
+      stocks.add(newStock);
     }
   }
 
-  int howManyStocks(String symbol) {
-    var stock = getStock(symbol);
+  int howManyStocks(String ticker) {
+    var stock = getStock(ticker);
     return stock?.howManyShares ?? 0;
   }
 
-  Stock? getStock(String symbol) => stocks.firstWhereOrNull((var stock) => stock.symbol == symbol);
+  Stock? getStock(String ticker) =>
+      stocks.firstWhereOrNull((var stock) => stock.ticker == ticker);
 
   /// Returns true if the portfolio contains the given stock.
-  bool hasStock(AvailableStock availableStock) => _getStockPositionInList(availableStock) != -1;
+  bool hasStock(AvailableStock availableStock) =>
+      _getStockPositionInList(availableStock) != -1;
 
   /// Returns true if the portfolio has enough money to buy one share of the given stock.
   bool hasMoneyToBuyStock(AvailableStock availableStock) =>
       cashBalance.amount >= availableStock.currentPrice;
 
   /// Will [buyOrSell] the amount of [howMany] shares of the given [availableStock].
-  void buyOrSell(AvailableStock availableStock, BuyOrSell buyOrSell, {int howMany = 1}) {
+  void buyOrSell(AvailableStock availableStock, BuyOrSell buyOrSell,
+      {int howMany = 1}) {
     if (buyOrSell.isBuy) {
       buy(availableStock, howMany: howMany);
     } else {
@@ -144,7 +155,8 @@ class Portfolio {
         int newShares = stock.howManyShares + howMany;
 
         stock.averagePrice = _round(
-            ((stock.howManyShares * stock.averagePrice) + (howMany * availableStock.currentPrice)) /
+            ((stock.howManyShares * stock.averagePrice) +
+                    (howMany * availableStock.currentPrice)) /
                 newShares);
 
         stock.howManyShares = newShares;
@@ -167,6 +179,7 @@ class Portfolio {
       if (stock.howManyShares < howMany)
         throw Exception('Cannot sell $howMany shares of stock you do not own');
       //
+      // Remove the stock entirely if all shares are sold.
       else if (stock.howManyShares == howMany)
         stocks.removeAt(pos);
       //
@@ -174,21 +187,24 @@ class Portfolio {
         int newShares = stock.howManyShares - howMany;
 
         stock.averagePrice = _round(
-            ((stock.howManyShares * stock.averagePrice) - (howMany * availableStock.currentPrice)) /
+            ((stock.howManyShares * stock.averagePrice) -
+                    (howMany * availableStock.currentPrice)) /
                 newShares);
 
         stock.howManyShares = newShares;
       }
 
+      // Increase the cash balance.
       cashBalance.add(availableStock.currentPrice * howMany);
     }
   }
 
   int _getStockPositionInList(AvailableStock availableStock) =>
-      stocks.indexWhere((s) => s.symbol == availableStock.symbol);
+      stocks.indexWhere((s) => s.ticker == availableStock.ticker);
 
   double get totalCostBasis =>
-      stocks.fold(0.0, (sum, stock) => sum + stock.costBasis) + cashBalance.amount;
+      stocks.fold(0.0, (sum, stock) => sum + stock.costBasis) +
+      cashBalance.amount;
 
   bool get isEmpty => stocks.isEmpty;
 
@@ -204,13 +220,15 @@ class Portfolio {
   int get hashCode => stocks.hashCode ^ cashBalance.hashCode;
 }
 
+/// Stocks that are available to buy/sell.
+/// This is read from the backend.
 class AvailableStock {
-  String symbol;
+  String ticker;
   String name;
   double _currentPrice;
 
   AvailableStock(
-    this.symbol, {
+    this.ticker, {
     required this.name,
     required double currentPrice,
   }) : _currentPrice = currentPrice;
@@ -218,7 +236,7 @@ class AvailableStock {
   String get currentPriceStr => 'US\$ ${_currentPrice.toStringAsFixed(2)}';
 
   Stock toStock({int shares = 1}) => Stock(
-        symbol: symbol,
+        ticker: ticker,
         howManyShares: shares,
         averagePrice: _currentPrice,
       );
@@ -245,34 +263,36 @@ class AvailableStock {
       identical(this, other) ||
       other is AvailableStock &&
           runtimeType == other.runtimeType &&
-          symbol == other.symbol &&
+          ticker == other.ticker &&
           name == other.name &&
           _currentPrice == other._currentPrice;
 
   @override
-  int get hashCode => symbol.hashCode ^ name.hashCode ^ _currentPrice.hashCode;
+  int get hashCode => ticker.hashCode ^ name.hashCode ^ _currentPrice.hashCode;
 }
 
 class AvailableStocks {
-  List<AvailableStock> stocks;
+  List<AvailableStock> list;
 
   AvailableStocks({
-    required this.stocks,
+    required this.list,
   });
 
-  AvailableStock findBySymbol(String symbol) {
-    AvailableStock? stock = stocks.firstWhereOrNull((s) => s.symbol == symbol);
-    if (stock == null) throw Exception('Stock not found: $symbol');
+  AvailableStock findBySymbol(String ticker) {
+    AvailableStock? stock = list.firstWhereOrNull((s) => s.ticker == ticker);
+    if (stock == null) throw Exception('Stock not found: $ticker');
     return stock;
   }
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is AvailableStocks && runtimeType == other.runtimeType && stocks == other.stocks;
+      other is AvailableStocks &&
+          runtimeType == other.runtimeType &&
+          list == other.list;
 
   @override
-  int get hashCode => stocks.hashCode;
+  int get hashCode => list.hashCode;
 }
 
 class AppState {
@@ -284,9 +304,10 @@ class AppState {
           stocks: [],
           cashBalance: CashBalance(0),
         ),
-        availableStocks: AvailableStocks(stocks: [
-          AvailableStock('IBM', name: 'International Business Machines', currentPrice: 132.64),
-          AvailableStock('APPL', name: 'Apple', currentPrice: 183.58),
+        availableStocks: AvailableStocks(list: [
+          AvailableStock('IBM',
+              name: 'International Business Machines', currentPrice: 132.64),
+          AvailableStock('AAPL', name: 'Apple', currentPrice: 183.58),
           AvailableStock('GOOG', name: 'Alphabet', currentPrice: 126.63),
           AvailableStock('AMZN', name: 'Amazon', currentPrice: 125.30),
           AvailableStock('META', name: 'Meta Platforms', currentPrice: 271.39),
@@ -302,7 +323,9 @@ class AppState {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is AppState && runtimeType == other.runtimeType && portfolio == other.portfolio;
+      other is AppState &&
+          runtimeType == other.runtimeType &&
+          portfolio == other.portfolio;
 
   @override
   int get hashCode => portfolio.hashCode;

@@ -18,13 +18,13 @@ void main() {
     state = AppState.initialState();
 
     // Given:
-    state.portfolio.cashBalance.set(120.00);
+    state.portfolio.cashBalance.setAmount(120.00);
     var ibm = state.availableStocks.findBySymbol('IBM');
     ibm.setCurrentPrice(30.00);
     state.portfolio.clearStock('IBM');
 
     // When:
-    state.portfolio.buy(ibm);
+    state.portfolio.buy(ibm, howMany: 1);
 
     // Then:
     expect(state.portfolio.howManyStocks('IBM'), 1);
@@ -56,7 +56,7 @@ void main() {
     state = AppState.initialState();
 
     // Given:
-    state.portfolio.cashBalance.set(120.00);
+    state.portfolio.cashBalance.setAmount(120.00);
 
     // We read and create the info from the "Available Stocks" table:
 
@@ -96,11 +96,11 @@ void main() {
     //   // Given:
     //   state.portfolio.cashBalance.set(120.00);
     //
-    //   var appl = state.availableStocks.findBySymbol('AAPL');
+    //   var aapl = state.availableStocks.findBySymbol('AAPL');
     //   var ibm = state.availableStocks.findBySymbol('IBM');
     //   var goog = state.availableStocks.findBySymbol('GOOG');
     //
-    //   appl.setCurrentPrice(50.25);
+    //   aapl.setCurrentPrice(50.25);
     //   ibm.setCurrentPrice(30.00);
     //   goog.setCurrentPrice(60.75);
     //
@@ -131,7 +131,7 @@ void main() {
     state = AppState.initialState();
 
     // Given:
-    state.portfolio.cashBalance.set(120.00);
+    state.portfolio.cashBalance.setAmount(120.00);
     var ibm = state.availableStocks.findBySymbol('IBM');
     ibm.setCurrentPrice(30.00);
     state.portfolio.clearStock('IBM');

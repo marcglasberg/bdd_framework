@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
-import 'bdd_base.dart' as bdd_framework show val, BddTableTerm;
+import 'bdd_base.dart' as bdd_framework show val;
+import 'bdd_base.dart' show BddTableTerm;
 
 class BddContext {
   final BddTableValues example;
@@ -32,7 +33,8 @@ class BddTableRows {
   /// ctx.table('notifications').row(0).val('read') as bool;
   BddTableValues row(int index) {
     if (index < 0 || index >= _values.length)
-      throw AssertionError("You can't get table row($index), since range is 0..${_values.length}.");
+      throw AssertionError(
+          "You can't get table row($index), since range is 0..${_values.length}.");
     else
       return _values[index];
   }
@@ -44,7 +46,8 @@ class BddTableRows {
     return _values.firstWhere(
       (BddTableValues btv) => btv.val(name) == value,
       orElse: () {
-        throw AssertionError('There is no table with name:"$name" and value: "$name".');
+        throw AssertionError(
+            'There is no table with name:"$name" and value: "$name".');
       },
     );
   }
@@ -72,9 +75,9 @@ class BddMultipleTableValues {
 
   BddMultipleTableValues(this._tables);
 
-  factory BddMultipleTableValues.from(List<bdd_framework.BddTableTerm> tableTerms) {
+  factory BddMultipleTableValues.from(List<BddTableTerm> tableTerms) {
     Map<String, List<BddTableValues>> _tables = {};
-    for (bdd_framework.BddTableTerm _table in tableTerms) {
+    for (BddTableTerm _table in tableTerms) {
       List<BddTableValues> tableValues =
           _table.rows.map((r) => BddTableValues.from(r.values)).toList();
 
@@ -85,7 +88,8 @@ class BddMultipleTableValues {
 
   List<BddTableValues> row(String tableName) {
     var table = _tables[tableName];
-    if (table == null) throw AssertionError('There is no table named "$tableName".');
+    if (table == null)
+      throw AssertionError('There is no table named "$tableName".');
     return table;
   }
 

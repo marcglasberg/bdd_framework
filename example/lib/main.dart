@@ -121,7 +121,7 @@ class _MyHomePageState extends State<MyHomePage> {
               AvailableStockWidget(
                 availableStock,
                 onBuy: () => setState(() {
-                  state.portfolio.buy(availableStock);
+                  state.portfolio.buy(availableStock, howMany: 1);
                 }),
                 onSell: () => setState(() {
                   state.portfolio.sell(availableStock);

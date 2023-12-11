@@ -5,9 +5,11 @@ import 'bdd_average_price.dart' as bdd_average_price;
 import 'bdd_buy_and_sell.dart' as bdd_buy_and_sell;
 
 void main() async {
-  /// This will print the result to the console.
   BddReporter.set(
+    // Print the result to the console.
     ConsoleReporter(),
+
+    // Create feature files.
     FeatureFileReporter(clearAllOutputBeforeRun: true),
   );
 

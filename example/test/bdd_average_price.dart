@@ -9,8 +9,7 @@ void main() {
   Bdd(feature)
       .scenario('Buying and Selling stocks changes the average price.')
       .given('The user has <Quantity> shares of <Ticker> at <At> dollars each.')
-      .when(
-          'The user <BuyOrSell> <How many> of these stock at <Price> for each share.')
+      .when('The user <BuyOrSell> <How many> of these stock at <Price> for each share.')
       .then('The number of shares becomes <Quantity> plus/minus <How many>.')
       .and('The average price for the stock becomes <Average Price>.')
       // Avg price = (10 x 100 + 2 * 50) / 12 = 91.67 dollars.
@@ -45,7 +44,7 @@ void main() {
 
     // Sets up everything and just make sure we have money to buy whatever we need.
     state = AppState.initialState();
-    state.portfolio.cashBalance.set(100000.00);
+    state.portfolio.cashBalance.setAmount(100000.00);
 
     // Given:
     var availableStock = state.availableStocks.findBySymbol(ticker);

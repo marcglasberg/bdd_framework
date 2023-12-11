@@ -55,7 +55,7 @@ class CashBalance {
 
   CashBalance(this._amount);
 
-  void set(double howMuchMoney) {
+  void setAmount(double howMuchMoney) {
     _amount = _round(howMuchMoney);
   }
 
@@ -136,7 +136,7 @@ class Portfolio {
   }
 
   /// Buy [howMany] shares of the given [availableStock].
-  void buy(AvailableStock availableStock, {int howMany = 1}) {
+  void buy(AvailableStock availableStock, {required int howMany}) {
     //
     if (cashBalance.amount < (availableStock.currentPrice * howMany)) {
       throw Exception('Not enough money to buy stock');

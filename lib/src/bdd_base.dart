@@ -11,7 +11,7 @@ import "package:meta/meta.dart";
 
 import 'bdd_context.dart';
 
-/// This interface helps you format values in Examples and Tables.
+/// This interface helps to format values in Examples and Tables.
 /// If a value implements the [BddDescribe] interface, or if it has a
 /// [describe] method, it will be used to format the value.
 abstract class BddDescribe {
@@ -87,9 +87,10 @@ class val {
     }
 
     try {
-      // The `describe` method here is dynamic.
+      // 2) The `describe` method here is dynamic.
       return _value.describe().toString();
     } on NoSuchMethodError {
+      // 3)
       return _value.toString();
     }
   }
@@ -183,8 +184,8 @@ class BddConfig {
   ///
   /// ```
   /// Object? transformDescribe(Object? obj) {
-  //   if (obj is User) return obj.userName;
-  // }
+  ///   if (obj is User) return obj.userName;
+  /// }
   /// ```
   final Object? Function(Object?)? transformDescribe;
 
@@ -358,6 +359,8 @@ class BddFramework {
 
   /// A Bdd may have 0, 1, or more tables (which are not examples).
   List<BddTableTerm> tables() =>
+  // TODO: This was refactored, and BddExample is not of type BddTableTerm anymore.
+  // TODO: Can remove the where.
       allTerms<BddTableTerm>().where((t) => t is! BddExample).toList();
 
   /// The example, if it exists, may have any number of rows.
@@ -387,11 +390,11 @@ class BddFramework {
     return this;
   }
 
+  // TODO: MARCELO Remove?
   // BddFramework config(Config? config) {
   //   _config = config;
   //   return this;
   // }
-
   // BddFramework configFrom({
   //   String? testOn,
   //   Timeout? timeout,
@@ -1206,6 +1209,7 @@ class BddExample extends BddTerm {
     return result;
   }
 
+  // TODO: MARCELO Remove?
   // @override
   // String spaces(BddConfig config) => '';
   //
@@ -1223,7 +1227,7 @@ class BddExample extends BddTerm {
   //
   // @override
   // String suffix(BddConfig config) => config.suffix.table;
-
+  //
   // /// Tables have a special toString treatment.
   // @override
   // String toString([BddConfig config = BddConfig._default]) =>
@@ -1846,7 +1850,6 @@ class _Run {
     ),
     //
     suffix: BddKeywords.only(
-      // given: "WHITE!",
       comment: blue,
     ),
     //

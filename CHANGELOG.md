@@ -1,4 +1,4 @@
-## [3.0.0] - 2023/01/10
+## [3.0.1] - 2023/01/10
 
 * Compatible with Flutter 3.13.9 version.
 

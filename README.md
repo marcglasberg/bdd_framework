@@ -4,6 +4,9 @@
 
 > _This package is brought to you by <a href="https://www.linkedin.com/in/zhammoud/">Zaher
 Hammoud</a> and me, <a href="https://github.com/marcglasberg">Marcelo Glasberg</a>._
+> 
+> Note there is also a **npm version** of this package for <a href="https://www.npmjs.com/package/easy-bdd-tool-jest"> 
+> JavaScript, TypeScript, React, React Native, Node etc</a>.
 
 This package supports and simplifies <a href='https://en.wikipedia.org/wiki/Behavior-driven_development'>Behavior
 Driven Development (BDD)</a> for Dart/Flutter.

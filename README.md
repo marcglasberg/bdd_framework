@@ -1041,6 +1041,27 @@ For more information, please refer to the license page.**
 
 ***
 
+<br>By **Marcelo Glasberg**<br>
+
+<a href="https://glasberg.dev">_glasberg.dev_</a>
+<br>
+<a href="https://github.com/marcglasberg">_github.com/marcglasberg_</a>
+<br>
+<a href="https://www.linkedin.com/in/marcglasberg/">_linkedin.com/in/marcglasberg/_</a>
+<br>
+<a href="https://twitter.com/glasbergmarcelo">_twitter.com/glasbergmarcelo_</a>
+<br>
+<a href="https://stackoverflow.com/users/3411681/marcg">
+_stackoverflow.com/users/3411681/marcg_</a>
+<br>
+<a href="https://medium.com/@marcglasberg">_medium.com/@marcglasberg_</a>
+<br>
+
+*My article in the official Flutter documentation*:
+
+* <a href="https://flutter.dev/docs/development/ui/layout/constraints">Understanding
+  constraints</a>
+
 *The Flutter packages I've authored:*
 
 * <a href="https://pub.dev/packages/async_redux">async_redux</a>
@@ -1057,6 +1078,8 @@ For more information, please refer to the license page.**
 * <a href="https://pub.dev/packages/weak_map">weak_map</a>
 * <a href="https://pub.dev/packages/themed">themed</a>
 * <a href="https://pub.dev/packages/bdd_framework">bdd_framework</a>
+* <a href="https://pub.dev/packages/tiktoken_tokenizer_gpt4o_o1">
+  tiktoken_tokenizer_gpt4o_o1</a>
 
 *My Medium Articles:*
 
@@ -1073,22 +1096,3 @@ For more information, please refer to the license page.**
   (versions: <a href="https://habr.com/ru/post/500210/">русский</a>)
 * <a href="https://medium.com/flutter-community/the-new-way-to-create-themes-in-your-flutter-app-7fdfc4f3df5f">
   The New Way to create Themes in your Flutter App</a> 
-
-*My article in the official Flutter documentation*:
-
-* <a href="https://flutter.dev/docs/development/ui/layout/constraints">Understanding constraints</a>
-
-<br>_Marcelo Glasberg:_<br>
-
-<a href="https://glasberg.dev">_glasberg.dev_</a>
-<br>
-<a href="https://github.com/marcglasberg">_github.com/marcglasberg_</a>
-<br>
-<a href="https://www.linkedin.com/in/marcglasberg/">_linkedin.com/in/marcglasberg/_</a>
-<br>
-<a href="https://twitter.com/glasbergmarcelo">_twitter.com/glasbergmarcelo_</a>
-<br>
-<a href="https://stackoverflow.com/users/3411681/marcg">_stackoverflow.com/users/3411681/marcg_</a>
-<br>
-<a href="https://medium.com/@marcglasberg">_medium.com/@marcglasberg_</a>
-<br>

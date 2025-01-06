@@ -1,16 +1,17 @@
-[![](./example/SponsoredByMyTextAi.png)](https://mytext.ai)
-
 [![Pub popularity](https://badgen.net/pub/popularity/bdd_framework)](https://pub.dev/packages/bdd_framework)
 [![Pub Version](https://img.shields.io/pub/v/bdd_framework?style=flat-square&logo=dart)](https://pub.dev/packages/bdd_framework)
-[![GitHub stars](https://img.shields.io/github/stars/marcglasberg/bdd_framework?style=social)](https://github.com/woltapp/bdd_framework)
+[![GitHub stars](https://img.shields.io/github/stars/marcglasberg/bdd_framework?style=social)](https://github.com/marcglasberg/bdd_framework)
 ![Code Climate issues](https://img.shields.io/github/issues/marcglasberg/bdd_framework?style=flat-square)
 ![GitHub closed issues](https://img.shields.io/github/issues-closed/marcglasberg/bdd_framework?style=flat-square)
 ![GitHub repo size](https://img.shields.io/github/repo-size/marcglasberg/bdd_framework?style=flat-square)
 ![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)
 [![Developed by Marcelo Glasberg](https://img.shields.io/badge/Developed%20by%20Marcelo%20Glasberg-blue.svg)](https://glasberg.dev/)
-[![Wolt on pub.dev](https://img.shields.io/pub/publisher/bdd_framework.svg)](https://pub.dev/packages/glasberg.dev/publisher)
+[![Glasberg.dev on pub.dev](https://img.shields.io/pub/publisher/async_redux.svg)](https://pub.dev/publishers/glasberg.dev/packages)
 [![Platforms](https://badgen.net/pub/flutter-platform/bdd_framework)](https://pub.dev/packages/bdd_framework)
 
+#### Sponsor
+
+[![](https://raw.githubusercontent.com/marcglasberg/bdd_framework/master/example/SponsoredByMyTextAi.png)](https://mytext.ai)
 
 # BDD Framework
 
@@ -1106,3 +1107,5 @@ _stackoverflow.com/users/3411681/marcg_</a>
   (versions: <a href="https://habr.com/ru/post/500210/">русский</a>)
 * <a href="https://medium.com/flutter-community/the-new-way-to-create-themes-in-your-flutter-app-7fdfc4f3df5f">
   The New Way to create Themes in your Flutter App</a> 
+
+[![](https://raw.githubusercontent.com/marcglasberg/bdd_framework/master/example/SponsoredByMyTextAi.png)](https://mytext.ai)

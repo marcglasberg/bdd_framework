@@ -1,9 +1,9 @@
-## 4.0.1
+## 4.0.5
 
 * Sponsored by [MyText.ai](https://mytext.ai)
 
-[![](./example/SponsoredByMyTextAi.png)](https://mytext.ai)
-
+[![](https://raw.githubusercontent.com/marcglasberg/bdd_framework/master/example/SponsoredByMyTextAi.png)](https://mytext.ai)
+      
 ## 3.0.2
 
 * Compatible with Flutter 3.13.9 version.

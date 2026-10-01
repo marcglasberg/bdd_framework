@@ -2,209 +2,227 @@ import 'package:bdd_framework/bdd_framework.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  group('BddExample Basic Rendering', () {
-    test('renders examples keyword and rows correctly', () {
-      final example = Bdd(BddFeature('Example Feature'))
-          .scenario('Example Scenario')
-          .given('a condition')
-          .when('an action')
-          .then('an outcome')
-          .example(
-            val('number', 123),
-            val('password', 'abc'),
-          )
-          .example(
-            val('number', 456),
-            val('password', 'xyz'),
+  group('BddExample', () {
+    group('toString()', () {
+      group('rendering examples', () {
+        test('should render the Examples keyword and table rows correctly', () {
+          final example = Bdd(BddFeature('Example Feature'))
+              .scenario('Example Scenario')
+              .given('a condition')
+              .when('an action')
+              .then('an outcome')
+              .example(
+                val('number', 123),
+                val('password', 'abc'),
+              )
+              .example(
+                val('number', 456),
+                val('password', 'xyz'),
+              );
+
+          final output = example.toString(const BddConfig());
+          expect(
+            output,
+            [
+              '    Examples: ',
+              '      | number | password |',
+              '      | 123    | abc      |',
+              '      | 456    | xyz      |',
+            ].join('\n'),
           );
+        });
+      });
 
-      final output = example.toString(const BddConfig());
-      expect(
-        output,
-        '    Examples: \n'
-        '      | number | password |\n'
-        '      | 123    | abc      |\n'
-        '      | 456    | xyz      |',
-      );
-    });
+      group('with default config', () {
+        test('should render correctly', () {
+          final example = Bdd(BddFeature('Example Feature'))
+              .scenario('Example Scenario')
+              .given('a condition')
+              .when('an action')
+              .then('an outcome')
+              .example(
+                val('number', 123),
+                val('password', 'abc'),
+              );
 
-    test('appends rows when chaining multiple example calls', () {
-      final bdd = Bdd(BddFeature('Example Feature'))
-          .scenario('Example Scenario')
-          .given('a condition')
-          .when('an action')
-          .then('an outcome')
-          .example(
-            val('number', 123),
-            val('password', 'abc'),
-          )
-          .example(
-            val('number', 456),
-            val('password', 'xyz'),
+          final output = example.toString(const BddConfig());
+          expect(
+            output,
+            [
+              '    Examples: ',
+              '      | number | password |',
+              '      | 123    | abc      |',
+            ].join('\n'),
           );
+        });
+      });
 
-      expect(bdd.rows, hasLength(2));
-      expect(
-        {for (final v in bdd.rows[0]) v.name: v.value},
-        {'number': 123, 'password': 'abc'},
-      );
-      expect(
-        {for (final v in bdd.rows[1]) v.name: v.value},
-        {'number': 456, 'password': 'xyz'},
-      );
-    });
-  });
+      group('with BddRunner config', () {
+        test('should apply bold/italic markers', () {
+          final example = Bdd(BddFeature('Example Feature'))
+              .scenario('Example Scenario')
+              .given('a condition')
+              .when('an action')
+              .then('an outcome')
+              .example(val('number', 123));
 
-  group('BddExample Config Integration', () {
-    test('respects custom examples keyword from BddConfig', () {
-      final example = Bdd(BddFeature('Example Feature'))
-          .scenario('Example Scenario')
-          .given('a condition')
-          .when('an action')
-          .then('an outcome')
-          .example(val('欄位', '值'));
-
-      const customConfig = BddConfig(
-        keywords: BddKeywords(examples: '範例:'),
-      );
-
-      final output = example.toString(customConfig);
-      expect(
-        output,
-        '    範例: \n'
-        '      | 欄位 |\n'
-        '      | 值  |',
-      );
+          final output = example.toString(BddRunner.config);
+          const bi = BddRunner.boldItalic;
+          const bo = BddRunner.boldItalicOff;
+          expect(
+            output,
+            [
+              '    ${bi}Examples:$bo ',
+              '      | number |',
+              '      | 123    |',
+            ].join('\n'),
+          );
+        });
+      });
     });
 
-    test('applies custom endOfLineChar correctly', () {
-      final example = Bdd(BddFeature('Example Feature'))
-          .scenario('Example Scenario')
-          .given('a condition')
-          .when('an action')
-          .then('an outcome')
-          .example(val('number', 123));
+    group('rows', () {
+      test('should append rows when chaining multiple example calls', () {
+        final bdd = Bdd(BddFeature('Example Feature'))
+            .scenario('Example Scenario')
+            .given('a condition')
+            .when('an action')
+            .then('an outcome')
+            .example(
+              val('number', 123),
+              val('password', 'abc'),
+            )
+            .example(
+              val('number', 456),
+              val('password', 'xyz'),
+            );
 
-      const customConfig = BddConfig(endOfLineChar: '\r\n');
-
-      final output = example.toString(customConfig);
-      expect(output, '    Examples: \r\n      | number |\r\n      | 123    |');
-    });
-  });
-
-  group('BddExample DSL Integration', () {
-    test('allows examples after then and', () {
-      final reporter = _TestBddReporter(const BddConfig());
-      final seenExamples = <BddTableValues>[];
-
-      Bdd(BddFeature('Example Feature'))
-          .scenario('Example Scenario')
-          .given('a condition')
-          .when('an action')
-          .then('an outcome')
-          .and('another outcome')
-          .example(
-            val('number', 123),
-            val('password', 'abc'),
-          )
-          .example(
-            val('number', 456),
-            val('password', 'xyz'),
-          )
-          .testRun((ctx) {
-            seenExamples.add(ctx.example);
-          }, reporter);
-
-      expect(seenExamples, [
-        BddTableValues({'number': 123, 'password': 'abc'}),
-        BddTableValues({'number': 456, 'password': 'xyz'}),
-      ]);
+        expect(bdd.rows, hasLength(2));
+        expect(
+          {for (final v in bdd.rows[0]) v.name: v.value},
+          {'number': 123, 'password': 'abc'},
+        );
+        expect(
+          {for (final v in bdd.rows[1]) v.name: v.value},
+          {'number': 456, 'password': 'xyz'},
+        );
+      });
     });
 
-    test('allows examples after then but', () {
-      final reporter = _TestBddReporter(const BddConfig());
-      final seenExamples = <BddTableValues>[];
+    group('DSL Integration', () {
+      test('should allow examples after then followed by and', () {
+        final reporter = _TestBddReporter(const BddConfig());
+        final seenExamples = <BddTableValues>[];
 
-      Bdd(BddFeature('Example Feature'))
-          .scenario('Example Scenario')
-          .given('a condition')
-          .when('an action')
-          .then('an outcome')
-          .but('not a different outcome type')
-          .example(
-            val('number', 123),
-            val('password', 'abc'),
-          )
-          .example(
-            val('number', 456),
-            val('password', 'xyz'),
-          )
-          .testRun((ctx) {
-            seenExamples.add(ctx.example);
-          }, reporter);
+        Bdd(BddFeature('Example Feature'))
+            .scenario('Example Scenario')
+            .given('a condition')
+            .when('an action')
+            .then('an outcome')
+            .and('another outcome')
+            .example(
+              val('number', 123),
+              val('password', 'abc'),
+            )
+            .example(
+              val('number', 456),
+              val('password', 'xyz'),
+            )
+            .testRun((ctx) {
+              seenExamples.add(ctx.example);
+            }, reporter);
 
-      expect(seenExamples, [
-        BddTableValues({'number': 123, 'password': 'abc'}),
-        BddTableValues({'number': 456, 'password': 'xyz'}),
-      ]);
-    });
+        expect(seenExamples, [
+          BddTableValues({'number': 123, 'password': 'abc'}),
+          BddTableValues({'number': 456, 'password': 'xyz'}),
+        ]);
+      });
 
-    test('allows examples after then code and', () {
-      final reporter = _TestBddReporter(const BddConfig());
-      final seenExamples = <BddTableValues>[];
+      test('should allow examples after then followed by but', () {
+        final reporter = _TestBddReporter(const BddConfig());
+        final seenExamples = <BddTableValues>[];
 
-      Bdd(BddFeature('Example Feature'))
-          .scenario('Example Scenario')
-          .given('a condition')
-          .when('an action')
-          .then('an outcome')
-          .code((_) {})
-          .and('another outcome')
-          .example(
-            val('number', 123),
-            val('password', 'abc'),
-          )
-          .example(
-            val('number', 456),
-            val('password', 'xyz'),
-          )
-          .testRun((ctx) {
-            seenExamples.add(ctx.example);
-          }, reporter);
+        Bdd(BddFeature('Example Feature'))
+            .scenario('Example Scenario')
+            .given('a condition')
+            .when('an action')
+            .then('an outcome')
+            .but('not a different outcome type')
+            .example(
+              val('number', 123),
+              val('password', 'abc'),
+            )
+            .example(
+              val('number', 456),
+              val('password', 'xyz'),
+            )
+            .testRun((ctx) {
+              seenExamples.add(ctx.example);
+            }, reporter);
 
-      expect(seenExamples, [
-        BddTableValues({'number': 123, 'password': 'abc'}),
-        BddTableValues({'number': 456, 'password': 'xyz'}),
-      ]);
-    });
+        expect(seenExamples, [
+          BddTableValues({'number': 123, 'password': 'abc'}),
+          BddTableValues({'number': 456, 'password': 'xyz'}),
+        ]);
+      });
 
-    test('allows examples after then code but', () {
-      final reporter = _TestBddReporter(const BddConfig());
-      final seenExamples = <BddTableValues>[];
+      test('should allow examples after then code followed by and', () {
+        final reporter = _TestBddReporter(const BddConfig());
+        final seenExamples = <BddTableValues>[];
 
-      Bdd(BddFeature('Example Feature'))
-          .scenario('Example Scenario')
-          .given('a condition')
-          .when('an action')
-          .then('an outcome')
-          .code((_) {})
-          .but('not a different outcome type')
-          .example(
-            val('number', 123),
-            val('password', 'abc'),
-          )
-          .example(
-            val('number', 456),
-            val('password', 'xyz'),
-          )
-          .testRun((ctx) {
-            seenExamples.add(ctx.example);
-          }, reporter);
+        Bdd(BddFeature('Example Feature'))
+            .scenario('Example Scenario')
+            .given('a condition')
+            .when('an action')
+            .then('an outcome')
+            .code((_) {})
+            .and('another outcome')
+            .example(
+              val('number', 123),
+              val('password', 'abc'),
+            )
+            .example(
+              val('number', 456),
+              val('password', 'xyz'),
+            )
+            .testRun((ctx) {
+              seenExamples.add(ctx.example);
+            }, reporter);
 
-      expect(seenExamples, [
-        BddTableValues({'number': 123, 'password': 'abc'}),
-        BddTableValues({'number': 456, 'password': 'xyz'}),
-      ]);
+        expect(seenExamples, [
+          BddTableValues({'number': 123, 'password': 'abc'}),
+          BddTableValues({'number': 456, 'password': 'xyz'}),
+        ]);
+      });
+
+      test('should allow examples after then code followed by but', () {
+        final reporter = _TestBddReporter(const BddConfig());
+        final seenExamples = <BddTableValues>[];
+
+        Bdd(BddFeature('Example Feature'))
+            .scenario('Example Scenario')
+            .given('a condition')
+            .when('an action')
+            .then('an outcome')
+            .code((_) {})
+            .but('not a different outcome type')
+            .example(
+              val('number', 123),
+              val('password', 'abc'),
+            )
+            .example(
+              val('number', 456),
+              val('password', 'xyz'),
+            )
+            .testRun((ctx) {
+              seenExamples.add(ctx.example);
+            }, reporter);
+
+        expect(seenExamples, [
+          BddTableValues({'number': 123, 'password': 'abc'}),
+          BddTableValues({'number': 456, 'password': 'xyz'}),
+        ]);
+      });
     });
   });
 }

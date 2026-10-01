@@ -105,10 +105,6 @@ class BddRunner {
     keywordPrefix: BddKeywords.only(
       scenario: '\n',
       scenarioOutline: '\n',
-      given: '\n',
-      when: '\n',
-      then: '\n',
-      examples: '\n',
       comment: grey,
     ),
     suffix: BddKeywords.only(

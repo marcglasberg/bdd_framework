@@ -3,185 +3,240 @@ import 'package:bdd_framework/flutter_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  group('BddBackground Basic Rendering', () {
-    test('renders only the Background keyword when there are no steps', () {
-      final feature = BddFeature('Feature Without Steps');
-      final background = feature.background;
-      // Because we haven't added given steps, it should just be:
-      // Background:\n
-      final output = background.toString(const BddConfig());
-      expect(output, '  Background:\n');
+  group('BddBackground', () {
+    group('toString()', () {
+      group('without steps', () {
+        test('should render only the Background keyword', () {
+          final feature = BddFeature('Feature Without Steps');
+          final background = feature.background;
+          final output = background.toString(const BddConfig());
+          expect(output, '  Background:\n');
+        });
+      });
+
+      group('with single step', () {
+        test('should render keyword and step correctly', () {
+          final feature = BddFeature('Feature With Single Step');
+          final background = feature.background;
+          background.given('a condition');
+
+          final output = background.toString(const BddConfig());
+          expect(output, '  Background:\n    Given a condition\n');
+        });
+      });
+
+      group('with multiple steps', () {
+        test('should maintain order and newlines correctly', () {
+          final feature = BddFeature('Feature With Multiple Steps');
+          final background = feature.background;
+          background.given('first step').and('second step').note('a comment');
+
+          final output = background.toString(const BddConfig());
+          expect(
+            output,
+            [
+              '  Background:',
+              '    Given first step',
+              '    And second step',
+              '    # A comment',
+              '',
+            ].join('\n'),
+          );
+        });
+      });
+
+      group('with custom keywords', () {
+        test('should respect the custom keywords', () {
+          final feature = BddFeature('Custom Keyword Feature');
+          final background = feature.background;
+          background.given('initial state');
+
+          const customConfig = BddConfig(
+            keywords: BddKeywords(
+              background: 'Context:',
+              given: 'Assume',
+            ),
+          );
+
+          final output = background.toString(customConfig);
+          expect(output, '  Context:\n    Assume initial state\n');
+        });
+      });
+
+      group('with custom indentation', () {
+        test('should return correct indentation based on config', () {
+          final feature = BddFeature('Indentation Feature');
+          final background = feature.background;
+          background.given('a condition');
+
+          const customConfig = BddConfig(
+            padChar: '\t',
+            indent: 1,
+          );
+
+          final output = background.toString(customConfig);
+          expect(output, '\tBackground:\n\t\tGiven a condition\n');
+        });
+      });
     });
 
-    test('renders keyword and step correctly with a single step', () {
-      final feature = BddFeature('Feature With Single Step');
-      final background = feature.background;
-      background.given('a condition');
+    group('Step Delegation', () {
+      test('should register step in internal framework when given is called', () {
+        final feature = BddFeature('Delegation Feature');
+        final background = feature.background;
 
-      final output = background.toString(const BddConfig());
-      expect(output, '  Background:\n    Given a condition\n');
+        background.given('state setup');
+
+        final internalFramework = feature.backgroundFramework!;
+        expect(internalFramework.terms.length, 1);
+        final term = internalFramework.terms.first;
+        expect(term, isA<BddGiven>());
+        expect((term as BddGiven).text, 'state setup');
+      });
+
+      test('should create BddGiven note instance when note is called', () {
+        final feature = BddFeature('Delegation Feature');
+        final background = feature.background;
+
+        background.note('important context');
+
+        final internalFramework = feature.backgroundFramework!;
+        expect(internalFramework.terms.length, 1);
+        final term = internalFramework.terms.first;
+        expect(term, isA<BddGiven>());
+        expect((term as BddGiven).text, 'important context');
+        expect(term.toString(const BddConfig()), '    # Important context');
+      });
+
+      test('should include delegated steps in final toString output', () {
+        final feature = BddFeature('Delegation Feature');
+        feature.background.given('step 1');
+        feature.background.given('step 2');
+
+        final output = feature.background.toString(const BddConfig());
+        expect(output, contains('Given step 1'));
+        expect(output, contains('Given step 2'));
+      });
     });
 
-    test('maintains order and newlines with multiple steps', () {
-      final feature = BddFeature('Feature With Multiple Steps');
-      final background = feature.background;
-      background.given('first step').and('second step').note('a comment');
+    group('Inheritance & Structure', () {
+      test('should pass empty text to super class constructor', () {
+        final feature = BddFeature('Structure Feature');
+        final background = feature.background;
+        expect(background.text, isEmpty);
+      });
 
-      final output = background.toString(const BddConfig());
-      expect(
-        output,
-        '  Background:\n'
-        '    Given first step\n'
-        '    And second step\n'
-        '    # A comment\n',
-      );
-    });
-  });
+      test('should return empty strings for prefix and suffix', () {
+        final feature = BddFeature('Structure Feature');
+        final background = feature.background;
+        const config = BddConfig();
 
-  group('BddBackground Config Integration', () {
-    test('respects custom keywords from BddConfig', () {
-      final feature = BddFeature('Custom Keyword Feature');
-      final background = feature.background;
-      background.given('初始化狀態');
-
-      const customConfig = BddConfig(
-        keywords: BddKeywords(
-          background: '背景:',
-          given: '假定',
-        ),
-      );
-
-      final output = background.toString(customConfig);
-      expect(output, '  背景:\n    假定 初始化狀態\n');
+        expect(background.prefix(config), isEmpty);
+        expect(background.suffix(config), isEmpty);
+      });
     });
 
-    test('applies keyword prefix and suffix to output', () {
-      final feature = BddFeature('Prefix Suffix Feature');
-      final background = feature.background;
+    group('toString()', () {
+      test('should render feature, background and scenario with default config', () {
+        final feature = BddFeature('Background Feature');
+        feature.background.given('shared setup');
 
-      const customConfig = BddConfig(
-        keywords: BddKeywords(background: 'Background:'),
-        keywordPrefix: BddKeywords.only(background: '--> '),
-        keywordSuffix: BddKeywords.only(background: ' <--'),
-      );
+        final BddFramework bdd = Bdd(feature);
+        bdd
+            .scenario('Flow')
+            .given('initial condition')
+            .when('action occurs')
+            .then('outcome happens');
 
-      final output = background.toString(customConfig);
-      expect(output, '  --> Background: <--\n');
-    });
+        final output = bdd.toString(
+          config: const BddConfig(),
+          withFeature: true,
+        );
+        final expected = [
+          'Feature: Background Feature',
+          '',
+          '  Background:',
+          '    Given shared setup',
+          '  Scenario: Flow',
+          '    Given initial condition',
+          '    When action occurs',
+          '    Then outcome happens',
+          '',
+        ].join('\n');
 
-    test('returns correct indentation based on config padding and spaces', () {
-      final feature = BddFeature('Indentation Feature');
-      final background = feature.background;
-      background.given('a condition');
+        expect(output, expected);
+      });
 
-      const customConfig = BddConfig(
-        padChar: '\t',
-        indent: 1, // Single tab for spaces()
-      );
+      test('should render with bold/italic markers when using BddRunner config', () {
+        final feature = BddFeature('Background Feature');
 
-      final output = background.toString(customConfig);
-      expect(output, '\tBackground:\n\t\tGiven a condition\n');
-    });
+        feature.background.given('shared setup');
 
-    test('uses custom endOfLineChar correctly', () {
-      final feature = BddFeature('CRLF Feature');
-      final background = feature.background;
-      background.given('a condition');
+        final BddFramework bdd = Bdd(feature);
+        bdd
+            .scenario('Flow')
+            .given('initial condition')
+            .when('action occurs')
+            .then('outcome happens')
+            .example(val('NewTime', '14:00'));
 
-      const customConfig = BddConfig(endOfLineChar: '\r\n');
+        final output = bdd.toString(
+          config: BddRunner.config,
+          withFeature: true,
+        );
+        const bi = BddRunner.boldItalic;
+        const bo = BddRunner.boldItalicOff;
+        const featureKeyword = '${bi}Feature:$bo';
+        const givenKeyword = '${bi}Given$bo';
+        const scenarioKeyword = '${bi}Scenario Outline:$bo';
+        const whenKeyword = '${bi}When$bo';
+        const thenKeyword = '${bi}Then$bo';
+        const examplesKeyword = '${bi}Examples:$bo';
 
-      final output = background.toString(customConfig);
-      expect(output, '  Background:\r\n    Given a condition\r\n');
-    });
-  });
+        final expected = [
+          '$featureKeyword Background Feature',
+          '',
+          '  Background:',
+          '    $givenKeyword shared setup',
+          '',
+          '  $scenarioKeyword Flow',
+          '    $givenKeyword initial condition',
+          '    $whenKeyword action occurs',
+          '    $thenKeyword outcome happens',
+          '    $examplesKeyword ',
+          '      | NewTime |',
+          '      | 14:00   |',
+          '',
+        ].join('\n');
 
-  group('BddBackground Step Delegation', () {
-    test('given registers step in internal framework', () {
-      final feature = BddFeature('Delegation Feature');
-      final background = feature.background;
+        expect(output, expected);
+      });
 
-      background.given('state setup');
+      test('should execute Background steps before scenario steps', () async {
+        final feature = BddFeature('Background Run Test');
+        final log = <String>[];
 
-      final internalFramework = feature.backgroundFramework!;
-      expect(internalFramework.terms.length, 1);
-      final term = internalFramework.terms.first;
-      expect(term, isA<BddGiven>());
-      expect((term as BddGiven).text, 'state setup');
-    });
+        feature.background
+            .given('background setup')
+            .code((_) => log.add('bg1'))
+            .and('more background setup')
+            .code((_) => log.add('bg2'));
 
-    test('note creates BddGiven note instance', () {
-      final feature = BddFeature('Delegation Feature');
-      final background = feature.background;
+        final bdd = Bdd(feature)
+            .scenario('Main Flow')
+            .given('initial condition')
+            .code((_) => log.add('s1'))
+            .when('action occurs')
+            .code((_) => log.add('w1'))
+            .then('outcome happens')
+            .code((_) => log.add('t1'));
 
-      background.note('important context');
+        bdd.testRun((_) {
+          log.add('runTest_end');
+        }, ConsoleReporter());
 
-      final internalFramework = feature.backgroundFramework!;
-      expect(internalFramework.terms.length, 1);
-      final term = internalFramework.terms.first;
-      expect(term, isA<BddGiven>());
-      expect((term as BddGiven).text, 'important context');
-      // variation is private, but checking the output prefix/character validates it.
-      expect(term.toString(const BddConfig()), '    # Important context');
-    });
-
-    test('delegated steps are included in final toString output', () {
-      final feature = BddFeature('Delegation Feature');
-      feature.background.given('step 1');
-      feature.background.given('step 2');
-
-      final output = feature.background.toString(const BddConfig());
-      expect(output, contains('Given step 1'));
-      expect(output, contains('Given step 2'));
-    });
-  });
-
-  group('BddBackground Inheritance & Structure', () {
-    test('initialization super constructor passes empty text to super class',
-        () {
-      final feature = BddFeature('Structure Feature');
-      final background = feature.background;
-
-      // Ensure the text of the background itself is empty, as it acts as a grouping block
-      expect(background.text, isEmpty);
-    });
-
-    test('prefix and suffix return empty strings', () {
-      final feature = BddFeature('Structure Feature');
-      final background = feature.background;
-      const config = BddConfig();
-
-      expect(background.prefix(config), isEmpty);
-      expect(background.suffix(config), isEmpty);
-    });
-  });
-
-  group('BddBackground Runner Integration', () {
-    test(
-        'Background steps are executed before scenario steps using Bdd.runTest',
-        () async {
-      final feature = BddFeature('Background Run Test');
-      final log = <String>[];
-
-      feature.background
-          .given('background setup')
-          .code((_) => log.add('bg1'))
-          .and('more background setup')
-          .code((_) => log.add('bg2'));
-
-      final bdd = Bdd(feature)
-          .scenario('Main Flow')
-          .given('initial condition')
-          .code((_) => log.add('s1'))
-          .when('action occurs')
-          .code((_) => log.add('w1'))
-          .then('outcome happens')
-          .code((_) => log.add('t1'));
-
-      bdd.testRun((_) {
-        log.add('runTest_end');
-      }, ConsoleReporter());
-
-      expect(log, ['bg1', 'bg2', 's1', 'w1', 't1', 'runTest_end']);
+        expect(log, ['bg1', 'bg2', 's1', 'w1', 't1', 'runTest_end']);
+      });
     });
   });
 }

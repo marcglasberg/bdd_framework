@@ -14,6 +14,7 @@ part 'bdd_feature.dart';
 part 'bdd_background.dart';
 part 'bdd_feature_description.dart';
 part 'bdd_example.dart';
+part 'bdd_scenario.dart';
 
 /// This interface helps to format values in Examples and Tables.
 /// If a value implements the [BddDescribe] interface, or if it has a
@@ -486,68 +487,25 @@ class BddFramework {
     return result;
   }
 
+  String _featureSection(BddConfig config, bool withFeature) =>
+      withFeature ? feature?.toString(config) ?? "" : "";
+
+  String _backgroundSection(BddConfig config, bool withFeature) =>
+      withFeature && feature?.backgroundFramework != null
+          ? config.endOfLineChar + feature!.background.toString(config)
+          : "";
+
+  String _termsSection(BddConfig config) =>
+      toMap(config).join(config.endOfLineChar) + config.endOfLineChar;
+
   @override
   String toString({
     BddConfig config = BddConfig._default,
     bool withFeature = false,
   }) =>
-      (withFeature ? feature?.toString(config) ?? "" : "") +
-      toMap(config).join(config.endOfLineChar) +
-      config.endOfLineChar;
-}
-
-class BddScenario extends BddTerm {
-  BddScenario(BddFramework bdd, String text)
-      : super(bdd, text, _Variation.term);
-
-  bool get containsExample => bdd.terms.any((term) => term is BddExample);
-
-  @override
-  String spaces(BddConfig config) => config.spaces;
-
-  @override
-  String keyword(BddConfig config) => containsExample //
-      ? config.keywords.scenarioOutline
-      : config.keywords.scenario;
-
-  @override
-  String keywordPrefix(BddConfig config) => containsExample //
-      ? config.keywordPrefix.scenarioOutline
-      : config.keywordPrefix.scenario;
-
-  @override
-  String keywordSuffix(BddConfig config) => containsExample //
-      ? config.keywordSuffix.scenarioOutline
-      : config.keywordSuffix.scenario;
-
-  @override
-  String prefix(BddConfig config) => containsExample //
-      ? config.prefix.scenarioOutline
-      : config.prefix.scenario;
-
-  @override
-  String suffix(BddConfig config) => containsExample //
-      ? config.suffix.scenarioOutline
-      : config.suffix.scenario;
-
-  /// This keyword starts a step that sets up the initial context of the
-  /// scenario. It's used to describe the state of the world before you begin
-  /// the behavior you're specifying in this scenario. For example,
-  /// "Given I am logged into the website" sets the scene for the actions that follow.
-  BddGiven given(String text) => BddGiven(bdd, text);
-
-  /// Often used informally in comments within a Gherkin document to provide
-  /// additional information, clarifications, or explanations about the scenario
-  /// or steps. Comments in Gherkin are usually marked with a hashtag (#) and
-  /// are ignored when the tests are executed. A "Note" can be useful for
-  /// giving context or explaining the rationale behind a certain test scenario,
-  /// making it easier for others to understand the purpose and scope of the test.
-  BddGiven note(String text) => BddGiven._(bdd, text, _Variation.note);
-
-  @override
-  // ignore: unnecessary_overrides
-  String toString([BddConfig config = BddConfig._default]) =>
-      super.toString(config);
+      _featureSection(config, withFeature) +
+      _backgroundSection(config, withFeature) +
+      _termsSection(config);
 }
 
 class BddGiven extends BddTerm with BddCodeable<_GivenCode>, BddRunnable {

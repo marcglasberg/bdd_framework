@@ -1,16 +1,31 @@
-## Unreleased
+Sponsored by [MyText.ai](https://mytext.ai)
+
+[![](https://raw.githubusercontent.com/marcglasberg/bdd_framework/master/example/SponsoredByMyTextAi.png)](https://mytext.ai)
+
+## 5.0.0
+
+* If you want to use [Patrol](https://pub.dev/packages/patrol), see the new
+  [bdd_framework_patrol](https://pub.dev/packages/bdd_framework_patrol) package.
+  Its code was contributed by [Kahoulam](https://github.com/Kahoulam).
+
+* **Breaking:** `.run()` and `.code()` are now extension methods that come from
+  a runner import: `package:bdd_framework/bdd_framework.dart` or
+  `flutter_test.dart` (Flutter tests), `flutter_widget_test.dart` (widget tests
+  with a `WidgetTester`), or `dart_test.dart` (pure Dart tests). If you import
+  `bdd_framework.dart` with a `show` clause, also show `FlutterTestRun` and
+  `FlutterTestCode`.
 
 * Fix pure Dart BDD tests reporting success to `package:test` after a failed
   assertion or exception. Synchronous and asynchronous failures now fail the
   underlying test and return a failing test-process exit code.
+
 * Restore custom-formatting and feature-collection regression coverage, and test
   execution of scenarios starting directly with When or Then.
 
+* New `package:bdd_framework/core.dart` exposes the runner-agnostic API (no
+  `.run()` extension) for runners in other packages.
+
 ## 4.0.7
-
-* Sponsored by [MyText.ai](https://mytext.ai)
-
-[![](https://raw.githubusercontent.com/marcglasberg/bdd_framework/master/example/SponsoredByMyTextAi.png)](https://mytext.ai)
 
 * Version bump of dependencies
 

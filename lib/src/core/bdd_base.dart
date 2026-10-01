@@ -244,7 +244,8 @@ mixin BddCodeable<T> on _BaseTerm {
   ///
   /// Each mixing class implements this to return its corresponding code term.
   /// Use `.code()` from a runner import instead of calling this directly.
-  @internal
+  /// Only runner implementations (including runners in other packages, which
+  /// import `package:bdd_framework/core.dart`) should call it.
   T addCode(CodeRun codeRun);
 }
 

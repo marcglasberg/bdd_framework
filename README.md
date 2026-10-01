@@ -1004,6 +1004,10 @@ Direct callers of `BddRunner.run()` can still provide an error handler and choos
 whether to rethrow after handling through its optional `rethrowAfterHandling`
 callback. The pure Dart `.run()` adapter enables rethrowing automatically.
 
+For [Patrol](https://pub.dev/packages/patrol) integration tests, use the separate
+[bdd_framework_patrol](https://pub.dev/packages/bdd_framework_patrol) package. It is kept
+out of `bdd_framework` so that this package does not depend on Patrol.
+
 <img src="https://raw.githubusercontent.com/marcglasberg/bdd_framework/main/example/lib/images/test_output.png" width="850" alt="console screenshot"/>
 
 <br>

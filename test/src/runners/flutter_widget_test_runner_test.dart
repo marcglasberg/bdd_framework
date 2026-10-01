@@ -31,6 +31,36 @@ void main() {
         .run();
   });
 
+  group('scenario entry points', () {
+    Bdd(feature)
+        .scenario('Widget When entry')
+        .when('pump widget')
+        .code((ctx, tester) async {
+          await tester.pumpWidget(const Directionality(
+            textDirection: TextDirection.ltr,
+            child: Text('When entry'),
+          ));
+        })
+        .then('widget is visible')
+        .code((ctx, tester) {
+          expect(find.text('When entry'), findsOneWidget);
+          expect((ctx as BddWidgetContext).tester, same(tester));
+        })
+        .run();
+
+    Bdd(feature)
+        .scenario('Widget Then entry')
+        .then('pump and find widget')
+        .code((ctx, tester) async {
+      await tester.pumpWidget(const Directionality(
+        textDirection: TextDirection.ltr,
+        child: Text('Then entry'),
+      ));
+      expect(find.text('Then entry'), findsOneWidget);
+      expect((ctx as BddWidgetContext).tester, same(tester));
+    }).run();
+  });
+
   group('code steps', () {
     Bdd(feature)
         .scenario('Provides WidgetTester in code step')

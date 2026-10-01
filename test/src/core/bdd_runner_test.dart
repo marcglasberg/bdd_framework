@@ -357,6 +357,66 @@ void main() {
       });
     });
 
+    // ── Error propagation policy ─────────────────────────────────────────
+
+    group('error propagation policy', () {
+      for (final policy in <bool?>[null, false, true]) {
+        test('records and handles failure with rethrow policy $policy', () async {
+          final bdd = Bdd(feature).scenario('policy').then('failure').bdd;
+          final original = StateError('original failure');
+          final stack = StackTrace.fromString('original failure stack');
+          final invocations = <TestInvocation>[];
+          Object? handled;
+          StackTrace? handledStack;
+          runner.run(bdd, (_) => Error.throwWithStackTrace(original, stack),
+              invocations.add, (error, trace) {
+            handled = error;
+            handledStack = trace;
+          }, policy == null ? null : () => policy);
+          if (policy == true) {
+            Object? propagated;
+            StackTrace? propagatedStack;
+            try {
+              await invocations.single.body();
+            } catch (error, trace) {
+              propagated = error;
+              propagatedStack = trace;
+            }
+            expect(propagated, isA<TestFailure>());
+            expect(propagatedStack.toString(), contains('original failure stack'));
+          } else {
+            await invocations.single.body();
+          }
+          expect(handled, same(original));
+          expect(handledStack.toString(), contains('original failure stack'));
+          expect(bdd.passed, [false]);
+          expect(BddReporter.runInfo.failedCount, 1);
+          expect(BddReporter.runInfo.passedCount, 0);
+        });
+      }
+
+      test('evaluates rethrow policy after the handler', () async {
+        final bdd = Bdd(feature).scenario('policy order').then('failure').bdd;
+        final invocations = <TestInvocation>[];
+        var handled = false;
+        runner.run(bdd, (_) => throw StateError('failure'), invocations.add,
+            (error, stack) => handled = true, () => handled);
+        await expectLater(invocations.single.body(), throwsA(isA<TestFailure>()));
+        expect(handled, isTrue);
+        expect(bdd.passed, [false]);
+      });
+
+      test('propagates exceptions thrown by an error handler', () async {
+        final bdd = Bdd(feature).scenario('handler failure').then('failure').bdd;
+        final invocations = <TestInvocation>[];
+        final handlerFailure = StateError('handler failure');
+        runner.run(bdd, (_) => throw StateError('step failure'), invocations.add,
+            (error, stack) => throw handlerFailure);
+        await expectLater(invocations.single.body(), throwsA(same(handlerFailure)));
+        expect(bdd.passed, [false]);
+      });
+    });
+
     // ── Retry and config ────────────────────────────────────────────────
 
     group('retry and timeout config', () {

@@ -994,6 +994,16 @@ issue</a>).
 * For tests that **fail** you'll get the error stacktrace, a `⚠ TEST 1 FAILED` message, and
   the failing description.
 
+For pure Dart tests, import `package:bdd_framework/dart_test.dart` and finish the
+scenario with `.run()`. Failed assertions and exceptions, including asynchronous
+errors in Background steps, scenario steps, and the final callback, also fail the
+underlying `package:test` test. A run containing a failed test returns a nonzero
+exit code, so CI can detect the failure. Each example row is a separate test.
+
+Direct callers of `BddRunner.run()` can still provide an error handler and choose
+whether to rethrow after handling through its optional `rethrowAfterHandling`
+callback. The pure Dart `.run()` adapter enables rethrowing automatically.
+
 <img src="https://raw.githubusercontent.com/marcglasberg/bdd_framework/main/example/lib/images/test_output.png" width="850" alt="console screenshot"/>
 
 <br>

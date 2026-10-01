@@ -1,3 +1,11 @@
+## Unreleased
+
+* Fix pure Dart BDD tests reporting success to `package:test` after a failed
+  assertion or exception. Synchronous and asynchronous failures now fail the
+  underlying test and return a failing test-process exit code.
+* Restore custom-formatting and feature-collection regression coverage, and test
+  execution of scenarios starting directly with When or Then.
+
 ## 4.0.7
 
 * Sponsored by [MyText.ai](https://mytext.ai)

@@ -32,6 +32,32 @@ void main() {
       });
     });
 
+    group('collections', () {
+      test('adds scenarios once and returns a defensive collection copy', () {
+        final feature = BddFeature('Checkout');
+        final bdd = Bdd(feature).scenario('payment').then('paid').bdd;
+        feature.add(bdd);
+        feature.add(bdd);
+        expect(feature.bdds, [bdd]);
+        feature.bdds.clear();
+        expect(feature.bdds, [bdd]);
+      });
+
+      test('testResults maps every scenario and its live result state', () {
+        final feature = BddFeature('Dashboard');
+        final first = Bdd(feature).scenario('graph').when('load').bdd;
+        final second = Bdd(feature).scenario('stats').then('visible').bdd;
+        feature.add(first);
+        feature.add(second);
+        first.passed.add(true);
+        second.passed.add(false);
+        expect(feature.testResults, hasLength(2));
+        expect(feature.testResults.first.passed, [true]);
+        expect(feature.testResults.last.passed, [false]);
+        expect(feature.testResults.first.terms, first.textTerms);
+      });
+    });
+
     group('toString()', () {
       test('should render correctly with default config', () {
         final feature = BddFeature('Login System');

@@ -46,6 +46,10 @@ class BddRunner {
   /// * [code]: The [CodeRun] closure to be added as the final execution step.
   /// * [testFn]: The underlying test runner function (from `package:test` or `package:flutter_test`).
   /// * [errorHandler]: An optional callback to handle errors occurring during test execution.
+  /// * [rethrowAfterHandling]: Evaluated after an error is recorded and handled.
+  ///   Returning true fails the delegate's test with a [TestFailure] retaining
+  ///   the original stack trace. Null or false leaves propagation to the handler
+  ///   (for example, Flutter's test exception reporter).
   void run(
     BddFramework bdd,
     CodeRun code,

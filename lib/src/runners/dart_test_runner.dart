@@ -11,12 +11,15 @@ extension DartTestRun on BddRunnable {
   ///
   /// This method uses the [BddRunner] to orchestrate step execution and delegates the
   /// underlying test lifecycle management to `package:test`.
+  /// Exceptions and failed assertions are recorded in the BDD report and also
+  /// fail the underlying test, including errors from asynchronous steps.
   void run([CodeRun? testCallback]) {
     BddRunner().run(
       bdd,
       testCallback ?? (ctx) async {}, // Default empty CodeRun
       _testDelegate,
-      null, // No custom error handler for pure Dart, let it bubble up to `test` framework
+      null, // Print the original error and stack trace before failing the test.
+      () => true,
     );
   }
 }

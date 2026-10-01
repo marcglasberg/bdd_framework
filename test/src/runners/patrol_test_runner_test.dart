@@ -58,6 +58,34 @@ void main() {
     });
   });
 
+  group('scenario entry points', () {
+    for (final keyword in ['When', 'Then']) {
+      test('transforms Patrol context for a $keyword start', () async {
+        final bdd = Bdd(feature);
+        final scenario = bdd.scenario('Patrol $keyword entry');
+        final tester = _FakePatrolIntegrationTester();
+        PatrolIntegrationTester? received;
+        final PatrolTestCallback callback = (ctx, patrolTester) {
+          received = patrolTester;
+          expect((ctx as BddPatrolContext).patrolTester, same(tester));
+        };
+        if (keyword == 'When') {
+          scenario.when('action').code(callback);
+        } else {
+          scenario.then('outcome').code(callback);
+        }
+        final invocations = <TestInvocation>[];
+        BddRunner().run(bdd, (_) {}, invocations.add, null, () => true);
+        final invocation = invocations.single;
+        invocation.transformContext!(
+            (context) => BddPatrolContext.from(context, patrolTester: tester));
+        await invocation.body();
+        expect(received, same(tester));
+        expect(bdd.passed, [true]);
+      });
+    }
+  });
+
   group('misuse feedback', () {
     test('throws a helpful error when patrol code runs without patrol runner',
         () async {

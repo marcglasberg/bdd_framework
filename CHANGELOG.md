@@ -2,7 +2,7 @@ Sponsored by [MyText.ai](https://mytext.ai)
 
 [![](https://raw.githubusercontent.com/marcglasberg/bdd_framework/master/example/SponsoredByMyTextAi.png)](https://mytext.ai)
 
-## 5.0.1
+## 5.0.2
 
 * `FeatureFileReporter(clearAllOutputBeforeRun: true)` now deletes only the
   `.feature` files directly inside `FeatureFileReporter.dir`. Previously it

@@ -1,4 +1,3 @@
-[![Pub popularity](https://badgen.net/pub/popularity/bdd_framework)](https://pub.dev/packages/bdd_framework)
 [![Pub Version](https://img.shields.io/pub/v/bdd_framework?style=flat-square&logo=dart)](https://pub.dev/packages/bdd_framework)
 [![GitHub stars](https://img.shields.io/github/stars/marcglasberg/bdd_framework?style=social)](https://github.com/marcglasberg/bdd_framework)
 ![Code Climate issues](https://img.shields.io/github/issues/marcglasberg/bdd_framework?style=flat-square)

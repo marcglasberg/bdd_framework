@@ -2,6 +2,14 @@ Sponsored by [MyText.ai](https://mytext.ai)
 
 [![](https://raw.githubusercontent.com/marcglasberg/bdd_framework/master/example/SponsoredByMyTextAi.png)](https://mytext.ai)
 
+## 5.0.1
+
+* `FeatureFileReporter(clearAllOutputBeforeRun: true)` now deletes only the
+  `.feature` files directly inside `FeatureFileReporter.dir`. Previously it
+  recursively deleted the whole directory, including any other files in it.
+  An empty `FeatureFileReporter.dir` now means the current directory, instead
+  of the filesystem root.
+
 ## 5.0.0
 
 * If you want to use [Patrol](https://pub.dev/packages/patrol), see the new

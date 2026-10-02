@@ -19,21 +19,41 @@ class FeatureFileReporter extends BddReporter {
   }
 
   /// Add a bar to the end of dir, only if necessary.
-  String get directory =>
-      (dir.endsWith("/") || dir.endsWith("\\")) ? dir : dir + "/";
+  /// An empty dir means the current directory (and not the filesystem root).
+  String get directory => dir.isEmpty
+      ? "./"
+      : (dir.endsWith("/") || dir.endsWith("\\"))
+          ? dir
+          : dir + "/";
 
   Future<void> _init() async {
     //
-    if (clearAllOutputBeforeRun) {
-      stdout.writeln("Deleting all generated feature files from $directory");
-      try {
-        await File(directory).delete(recursive: true);
-      } catch (e) {
-        stdout.writeln("Could not delete previously generated feature files.");
-      }
-    }
+    if (clearAllOutputBeforeRun) await _deleteFeatureFiles();
 
     stdout.writeln("Feature files will be saved in $directory");
+  }
+
+  /// Deletes only the `.feature` files directly inside the [directory].
+  /// Other files, subdirectories and links are never deleted.
+  Future<void> _deleteFeatureFiles() async {
+    stdout.writeln("Deleting all generated feature files from $directory");
+
+    final folder = Directory(directory);
+    try {
+      if (!folder.existsSync()) return;
+
+      await for (final entity in folder.list(followLinks: false)) {
+        if (entity is File && entity.path.endsWith('.feature')) {
+          try {
+            await entity.delete();
+          } catch (e) {
+            stdout.writeln("Could not delete ${entity.path}: $e");
+          }
+        }
+      }
+    } catch (e) {
+      stdout.writeln("Could not delete previously generated feature files: $e");
+    }
   }
 
   Future<void> _generate() async {

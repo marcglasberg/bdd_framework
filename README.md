@@ -960,7 +960,9 @@ The **BDD Framework** package comes out of the box with 2 reporters:
 * `FeatureFileReporter()` writes the results into `.feature` files that contain your BDDs in
   <a href='https://en.wikipedia.org/wiki/Cucumber_(software)#Gherkin_language'>Gherkin language</a>.
     * If the parameter `clearAllOutputBeforeRun` is `true`, all previous feature files will be
-      deleted and recreated each time you run the tests.
+      deleted and recreated each time you run the tests. Only the `.feature` files directly
+      inside `FeatureFileReporter.dir` are deleted. Other files, subdirectories and links are
+      kept.
     * You can set the variable `FeatureFileReporter.dir` to choose the directory where your
       feature files will be created. The default is to save them into `./gen_features/`. By saving
       them into your Flutter project, you can then simply commit your code to add those files to

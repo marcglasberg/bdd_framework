@@ -42,4 +42,43 @@ void main() {
       [true]
     ]);
   });
+
+  test('clearAllOutputBeforeRun deletes only the feature files in dir',
+      () async {
+    final directory = await Directory.systemTemp.createTemp('bdd-report-test-');
+    final previousDirectory = FeatureFileReporter.dir;
+    addTearDown(() async {
+      BddReporter.set();
+      FeatureFileReporter.dir = previousDirectory;
+      await directory.delete(recursive: true);
+    });
+    final oldFeature = File('${directory.path}/old.feature')
+      ..writeAsStringSync('Feature: old');
+    final otherFile = File('${directory.path}/notes.txt')
+      ..writeAsStringSync('keep');
+    final nestedFeature = File('${directory.path}/sub/nested.feature')
+      ..createSync(recursive: true)
+      ..writeAsStringSync('keep');
+    FeatureFileReporter.dir = directory.path;
+    final reporter = FeatureFileReporter(clearAllOutputBeforeRun: true);
+    BddReporter.set(reporter);
+    final bdd = Bdd(BddFeature('new'));
+    bdd.scenario('flow').then('result');
+    final invocations = <TestInvocation>[];
+    BddRunner().run(bdd, (_) {}, invocations.add, null, () => true);
+    await invocations.single.body();
+    await reporter.report();
+    expect(oldFeature.existsSync(), isFalse);
+    expect(otherFile.readAsStringSync(), 'keep');
+    expect(nestedFeature.readAsStringSync(), 'keep');
+    expect(File('${directory.path}/new.feature').existsSync(), isTrue);
+  });
+
+  test('an empty dir means the current directory, not the filesystem root',
+      () {
+    final previousDirectory = FeatureFileReporter.dir;
+    addTearDown(() => FeatureFileReporter.dir = previousDirectory);
+    FeatureFileReporter.dir = '';
+    expect(FeatureFileReporter().directory, './');
+  });
 }

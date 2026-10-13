@@ -226,15 +226,12 @@ final class ParsedFeature {
   /// One pickle per executable example. A `Scenario Outline` with two
   /// `Examples` rows produces two pickles, with `<placeholders>` substituted.
   final List<ParsedPickle> pickles;
+
+  /// Every `#` comment line, each with its original indentation, in source
+  /// order. This is where `note()` output lands.
   final List<String> comments;
 
   bool get isValid => errors.isEmpty;
-
-  /// Step keywords and texts of every scenario, flattened, for terse asserts.
-  List<String> get allStepLines => <String>[
-        for (final scenario in scenarios)
-          for (final step in scenario.steps) '${step.keyword} ${step.text}',
-      ];
 }
 
 final class ParsedScenario {

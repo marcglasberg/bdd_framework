@@ -270,6 +270,27 @@ void main() {
       ]);
     });
 
+    test('a single-line note exports as a Gherkin comment', () async {
+      final feature = BddFeature('single line note');
+      final bdd = Bdd(feature)
+        ..scenario('a scenario')
+            .given('a precondition')
+            .note('a note')
+            .then('an outcome');
+
+      final parsed = parseFeature(await exportFeature(feature, [bdd]));
+
+      // `note()` capitalizes the first character and prefixes the line with
+      // `#`, so the parser reports it as a comment and not as a step. This is
+      // the baseline that the multi-line note further down deviates from.
+      expect(parsed.errors, isEmpty);
+      expect(parsed.comments, ['    # A note']);
+      expect(parsed.scenarios.single.stepLines, [
+        'Given a precondition',
+        'Then an outcome',
+      ]);
+    });
+
     test('a backslash in a table cell survives the export', () async {
       final feature = BddFeature('backslash cell');
       final bdd = Bdd(feature)

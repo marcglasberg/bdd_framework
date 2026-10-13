@@ -47,7 +47,7 @@ void main() {
               val('Average Price', 302.00),
             );
 
-      final parsed = parseFeature(await exportFeature(feature, [bdd]));
+      final parsed = parseFeature(await exportFeature([bdd]));
 
       expect(parsed.errors, isEmpty);
       expect(parsed.keyword, 'Feature');
@@ -144,9 +144,7 @@ void main() {
             .when('The user sells 1 IBM.')
             .then('We get an error.');
 
-      final parsed = parseFeature(
-        await exportFeature(feature, [selling, missing]),
-      );
+      final parsed = parseFeature(await exportFeature([selling, missing]));
 
       expect(parsed.errors, isEmpty);
       expect(parsed.name, 'Buying and Selling Stocks');
@@ -213,7 +211,7 @@ void main() {
             .then('an outcome')
             .but('an exception');
 
-      final parsed = parseFeature(await exportFeature(feature, [bdd]));
+      final parsed = parseFeature(await exportFeature([bdd]));
 
       expect(parsed.errors, isEmpty);
       expect(parsed.name, 'round trip');
@@ -249,7 +247,7 @@ void main() {
             .note('a note')
             .then('an outcome');
 
-      final parsed = parseFeature(await exportFeature(feature, [bdd]));
+      final parsed = parseFeature(await exportFeature([bdd]));
 
       expect(parsed.errors, isEmpty);
       expect(parsed.comments, ['    # A note']);
@@ -268,7 +266,7 @@ void main() {
             .when('an action')
             .then('an outcome');
 
-      final parsed = parseFeature(await exportFeature(feature, [bdd]));
+      final parsed = parseFeature(await exportFeature([bdd]));
 
       expect(parsed.errors, isEmpty);
       expect(parsed.scenarios.single.steps.first.table, [
@@ -293,7 +291,7 @@ void main() {
             .when('an action')
             .then('an outcome');
 
-      final parsed = parseFeature(await exportFeature(feature, [bdd]));
+      final parsed = parseFeature(await exportFeature([bdd]));
 
       expect(parsed.errors, isEmpty);
       expect(parsed.scenarios.single.steps.first.table, [
@@ -315,7 +313,7 @@ void main() {
             .then('an outcome')
             .example(val('v', 'a|b'));
 
-      final parsed = parseFeature(await exportFeature(feature, [bdd]));
+      final parsed = parseFeature(await exportFeature([bdd]));
 
       expect(parsed.errors, isEmpty);
 
@@ -338,7 +336,7 @@ void main() {
             .given('line one\nScenario: injected')
             .then('an outcome');
 
-      final parsed = parseFeature(await exportFeature(feature, [bdd]));
+      final parsed = parseFeature(await exportFeature([bdd]));
 
       expect(parsed.errors, isEmpty);
 
@@ -366,7 +364,7 @@ void main() {
             .note('first line\nsecond line')
             .then('an outcome');
 
-      final parsed = parseFeature(await exportFeature(feature, [bdd]));
+      final parsed = parseFeature(await exportFeature([bdd]));
 
       expect(parsed.errors, isEmpty);
       expect(

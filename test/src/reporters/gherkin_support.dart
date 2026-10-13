@@ -44,8 +44,8 @@ Future<String> exportFeature(
   }
 }
 
-ParsedFeature parseFeature(String source, {String uri = 'bdd.feature'}) {
-  final envelopes = generateMessages(source, uri);
+ParsedFeature parseFeature(String source) {
+  final envelopes = generateMessages(source, 'bdd.feature');
 
   final errors = <String>[
     for (final envelope in envelopes)

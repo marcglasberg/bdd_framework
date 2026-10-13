@@ -339,9 +339,10 @@ void main() {
   // regression that changes it in some other way goes unnoticed. That is the
   // intended cost of not overstating what the suite verifies.
   //
-  // Reported on https://github.com/marcglasberg/bdd_framework/issues/17
+  // Each test names the issue tracking it.
   // ---------------------------------------------------------------------------
   group('the exporter escapes cell values', () {
+    // https://github.com/marcglasberg/bdd_framework/issues/18
     test('a pipe in a data table cell round trips', () async {
       final feature = BddFeature('pipe in data table');
       final bdd = Bdd(feature)
@@ -367,6 +368,7 @@ void main() {
       ]);
     }, skip: 'The exporter does not escape `|` in data table cells.');
 
+    // https://github.com/marcglasberg/bdd_framework/issues/18
     test('a pipe in an Examples cell round trips', () async {
       final feature = BddFeature('pipe in examples');
       final bdd = Bdd(feature)
@@ -393,6 +395,7 @@ void main() {
   });
 
   group('the exporter handles newlines in text', () {
+    // https://github.com/marcglasberg/bdd_framework/issues/19
     test('a newline in step text does not add a scenario', () async {
       final feature = BddFeature('newline in step');
       final bdd = Bdd(feature)
@@ -429,6 +432,7 @@ void main() {
         skip: 'The exporter writes newlines in step text raw, '
             'so text after one can open a second scenario.');
 
+    // https://github.com/marcglasberg/bdd_framework/issues/20
     test('a newline in a note comments every line', () async {
       final feature = BddFeature('newline in note');
       final bdd = Bdd(feature)

@@ -120,7 +120,6 @@ ParsedFeature parseFeature(String source) {
       background = ParsedScenario(
         keyword: childBackground.keyword.trim(),
         name: childBackground.name,
-        description: childBackground.description,
         steps: _steps(childBackground.steps),
         examples: const [],
       );
@@ -133,7 +132,6 @@ ParsedFeature parseFeature(String source) {
         ParsedScenario(
           keyword: scenario.keyword.trim(),
           name: scenario.name,
-          description: scenario.description,
           steps: _steps(scenario.steps),
           examples: <ParsedExamples>[
             for (final examples in scenario.examples)
@@ -211,14 +209,12 @@ final class ParsedScenario {
   const ParsedScenario({
     required this.keyword,
     required this.name,
-    required this.description,
     required this.steps,
     required this.examples,
   });
 
   final String keyword;
   final String name;
-  final String description;
   final List<ParsedStep> steps;
   final List<ParsedExamples> examples;
 

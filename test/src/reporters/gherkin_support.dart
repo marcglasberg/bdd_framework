@@ -18,10 +18,9 @@ import 'package:cucumber_messages/cucumber_messages.dart';
 /// Writes [feature] to a temporary directory with [FeatureFileReporter] and
 /// returns the generated `.feature` text.
 ///
-/// [bdds] must already be built against [feature]; they are run here so the
-/// reporter collects their results. Reporters are registered after the BDDs
-/// are built because [BddRunner] only hands them to the reporters at run time
-/// (see `lib/src/core/bdd_runner.dart`).
+/// [bdds] must already be built against [feature]. Reporters are registered
+/// after the BDDs are built because [BddRunner] only hands them to the
+/// reporters at run time (see `lib/src/core/bdd_runner.dart`).
 ///
 /// The global [FeatureFileReporter.dir] and the static reporter list are both
 /// restored before returning, so these helpers cannot leak into other tests.
@@ -37,12 +36,13 @@ Future<String> exportFeature(
     final reporter = FeatureFileReporter();
     BddReporter.set(reporter);
 
+    // `BddRunner.run()` is what registers each BDD with the active reporters.
+    // The [TestInvocation]s it hands to the delegate are discarded: their
+    // bodies only run step code and print to the console, and
+    // `FeatureFileReporter._generate()` writes `terms` without ever reading
+    // `passed`. Running them would not change a byte of the exported file.
     for (final bdd in bdds) {
-      final invocations = <TestInvocation>[];
-      BddRunner().run(bdd, (_) {}, invocations.add, null, () => true);
-      for (final invocation in invocations) {
-        await invocation.body();
-      }
+      BddRunner().run(bdd, (_) {}, (_) {}, null);
     }
 
     await reporter.report();

@@ -12,10 +12,16 @@ import 'gherkin_support.dart';
 /// depend on `example/` or on the working directory.
 ///
 /// Every test asserts the *structure* the parser built, not merely that
-/// parsing succeeded. That distinction matters: the newline-in-step-text bug
+/// parsing succeeded. That distinction matters: the newline-in-step-text case
 /// below parses without error yet silently yields the wrong scenarios, so a
 /// test that only checked for parse errors would pass while the export is
 /// broken.
+///
+/// Every test also asserts the behaviour the exporter *should* have, never the
+/// behaviour it currently has. The cases it gets wrong are marked `skip` with
+/// the defect named, so a passing run cannot be read as a claim that those
+/// cases work. Removing a `skip` is the whole of the test-side change when a
+/// fix lands.
 void main() {
   group('exported output is valid Gherkin', () {
     test('a user story, background, outline and examples round trip', () async {
@@ -317,16 +323,26 @@ void main() {
   });
 
   // ---------------------------------------------------------------------------
-  // The tests below pin the CURRENT, INCORRECT behaviour so the bugs are
-  // covered and any change to them is visible in a diff. Each one states the
-  // behaviour it should have instead. When a fix lands, invert the assertion
-  // to the documented expectation and move the test out of this group.
+  // The tests below assert the behaviour the exporter SHOULD have. They are
+  // skipped because it does not have it yet.
   //
-  // See https://github.com/marcglasberg/bdd_framework/issues/17
+  // They are written this way round on purpose. A test that asserted the
+  // current, broken output would pass, and a green suite would then read as
+  // "the exporter handles these cases" when it does not. Skipped tests that
+  // hold the target behaviour keep the expectation as the source of truth:
+  // green never certifies a bug, and a fix turns a test green rather than red.
+  //
+  // Each `skip` reason names the defect. When a fix lands, delete the `skip`;
+  // the assertions are already the ones it has to satisfy.
+  //
+  // The trade-off: while skipped, nothing here guards the current output, so a
+  // regression that changes it in some other way goes unnoticed. That is the
+  // intended cost of not overstating what the suite verifies.
+  //
+  // Reported on https://github.com/marcglasberg/bdd_framework/issues/17
   // ---------------------------------------------------------------------------
-  group('known issues: the exporter does not escape cell values', () {
-    test('KNOWN ISSUE: a pipe in a data table cell produces invalid Gherkin',
-        () async {
+  group('the exporter escapes cell values', () {
+    test('a pipe in a data table cell round trips', () async {
       final feature = BddFeature('pipe in data table');
       final bdd = Bdd(feature)
         ..scenario('a scenario')
@@ -337,22 +353,21 @@ void main() {
 
       final parsed = parseFeature(await exportFeature(feature, [bdd]));
 
-      // SHOULD BE: parsed.errors is empty, and the single cell holds
-      // 'ls | grep x', which requires the exporter to write `ls \| grep x`.
-      //
-      // The message is matched loosely on purpose: its exact wording belongs
-      // to cucumber_gherkin, so pinning it would turn an upstream rephrasing
-      // into a failure here. The structural assertions below carry the signal.
-      expect(parsed.isValid, isFalse);
-      expect(parsed.errors.single, contains('cell count'));
+      // Requires the exporter to write `ls \| grep x`. It currently writes the
+      // pipe raw, which splits one body cell into three against a one-column
+      // header and fails the parse on the cell count.
+      expect(parsed.errors, isEmpty);
+      expect(parsed.scenarios.single.steps.first.table, [
+        ['cmd'],
+        ['ls | grep x'],
+      ]);
+      expect(parsed.pickles.single.steps.first.table, [
+        ['cmd'],
+        ['ls | grep x'],
+      ]);
+    }, skip: 'The exporter does not escape `|` in data table cells.');
 
-      // The parse failure means no usable structure at all.
-      expect(parsed.scenarios, isEmpty);
-      expect(parsed.pickles, isEmpty);
-    });
-
-    test('KNOWN ISSUE: a pipe in an Examples cell produces invalid Gherkin',
-        () async {
+    test('a pipe in an Examples cell round trips', () async {
       final feature = BddFeature('pipe in examples');
       final bdd = Bdd(feature)
         ..scenario('a scenario')
@@ -362,18 +377,23 @@ void main() {
 
       final parsed = parseFeature(await exportFeature(feature, [bdd]));
 
-      // SHOULD BE: parsed.errors is empty, the Examples body row is ['a|b'],
-      // and one pickle is produced.
-      expect(parsed.isValid, isFalse);
-      expect(parsed.errors.single, contains('cell count'));
-      expect(parsed.scenarios, isEmpty);
-      expect(parsed.pickles, isEmpty);
-    });
+      expect(parsed.errors, isEmpty);
+
+      final scenario = parsed.scenarios.single;
+      expect(scenario.keyword, 'Scenario Outline');
+      expect(scenario.examples.single.table, [
+        ['v'],
+        ['a|b'],
+      ]);
+
+      // The pickle matters here: the escape has to survive placeholder
+      // substitution, so `<v>` resolves to the pipe and not to `a\|b`.
+      expect(parsed.pickles.single.stepTexts, ['a value a|b', 'an outcome']);
+    }, skip: 'The exporter does not escape `|` in Examples cells.');
   });
 
-  group('known issues: the exporter does not handle newlines in text', () {
-    test('KNOWN ISSUE: a newline in step text silently adds a scenario',
-        () async {
+  group('the exporter handles newlines in text', () {
+    test('a newline in step text does not add a scenario', () async {
       final feature = BddFeature('newline in step');
       final bdd = Bdd(feature)
         ..scenario('a scenario')
@@ -382,31 +402,34 @@ void main() {
 
       final parsed = parseFeature(await exportFeature(feature, [bdd]));
 
-      // This is the case a parse-only check cannot catch: the output is valid
-      // Gherkin, but it does not describe the test that was written.
-      expect(parsed.isValid, isTrue);
+      // The output is currently valid Gherkin that describes a different test
+      // than the one written: the embedded newline lets `Scenario: injected`
+      // open a second scenario, which captures the `Then` and leaves the first
+      // scenario holding only the `Given`. This is why the suite asserts
+      // structure rather than parse success.
+      expect(parsed.errors, isEmpty);
 
-      // SHOULD BE: one scenario named 'a scenario' holding both steps, and
-      // exactly one pickle.
-      expect(parsed.scenarios, hasLength(2));
-      expect(
-        parsed.scenarios.map((scenario) => scenario.name),
-        ['a scenario', 'injected'],
-      );
+      final scenario = parsed.scenarios.single;
+      expect(scenario.name, 'a scenario');
+      expect(scenario.steps, hasLength(2));
+      expect(scenario.steps.first.keyword, 'Given');
+      expect(scenario.steps.first.text, contains('line one'));
+      expect(scenario.stepLines.last, 'Then an outcome');
 
-      // The `Then` step was captured by the injected scenario, so the first
-      // scenario lost it entirely.
-      expect(parsed.scenarios.first.stepLines, ['Given line one']);
-      expect(parsed.scenarios.last.stepLines, ['Then an outcome']);
+      expect(parsed.pickles.single.name, 'a scenario');
+      expect(parsed.pickles.single.stepTexts.last, 'an outcome');
 
-      expect(parsed.pickles, hasLength(2));
-      expect(
-        parsed.pickles.map((pickle) => pickle.name),
-        ['a scenario', 'injected'],
-      );
-    });
+      // What the newline itself becomes is deliberately not pinned: collapsing
+      // it to a space and moving the text into a DocString are both valid
+      // fixes, and they differ only in the `Given` text. A DocString fix would
+      // additionally need `ParsedStep` to expose one. The invariant asserted
+      // here is the one both must satisfy: one scenario, one pickle, and no
+      // step lost.
+    },
+        skip: 'The exporter writes newlines in step text raw, '
+            'so text after one can open a second scenario.');
 
-    test('KNOWN ISSUE: a newline in a note produces invalid Gherkin', () async {
+    test('a newline in a note comments every line', () async {
       final feature = BddFeature('newline in note');
       final bdd = Bdd(feature)
         ..scenario('a scenario')
@@ -416,20 +439,22 @@ void main() {
 
       final parsed = parseFeature(await exportFeature(feature, [bdd]));
 
-      // Only the first line gets the `#` comment marker, so the second line is
-      // emitted as bare text. The error names that line; the surrounding
-      // "got '...'" phrasing is cucumber_gherkin's and is not matched, so an
-      // upstream rephrasing cannot fail this test.
+      // Every line of the note must carry its own `#`, as the single-line note
+      // above does. Only the first line currently gets one, so the second is
+      // emitted as bare text and the parse error costs the whole file: not
+      // even line one survives as the comment it was written as.
       //
-      // SHOULD BE: parsed.errors is empty and parsed.comments holds the whole
-      // note, with every line commented, as in the single-line note above.
-      expect(parsed.isValid, isFalse);
-      expect(parsed.errors.single, contains('second line'));
-
-      // The parse failure costs the whole file: not even the first line
-      // survives as the comment it was written as.
-      expect(parsed.scenarios, isEmpty);
-      expect(parsed.comments, isEmpty);
-    });
+      // Indentation is not pinned, only the comment text. `note()` capitalizes
+      // the first character of the note, which is why line one is `First`.
+      expect(parsed.errors, isEmpty);
+      expect(
+        parsed.comments.map((comment) => comment.trim()),
+        ['# First line', '# second line'],
+      );
+      expect(parsed.scenarios.single.stepLines, [
+        'Given a precondition',
+        'Then an outcome',
+      ]);
+    }, skip: 'The exporter only prefixes the first line of a note with `#`.');
   });
 }

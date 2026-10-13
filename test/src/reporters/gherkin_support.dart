@@ -230,8 +230,6 @@ final class ParsedFeature {
   /// Every `#` comment line, each with its original indentation, in source
   /// order. This is where `note()` output lands.
   final List<String> comments;
-
-  bool get isValid => errors.isEmpty;
 }
 
 final class ParsedScenario {

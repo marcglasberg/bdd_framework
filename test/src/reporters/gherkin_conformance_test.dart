@@ -339,11 +339,12 @@ void main() {
 
       // SHOULD BE: parsed.errors is empty, and the single cell holds
       // 'ls | grep x', which requires the exporter to write `ls \| grep x`.
+      //
+      // The message is matched loosely on purpose: its exact wording belongs
+      // to cucumber_gherkin, so pinning it would turn an upstream rephrasing
+      // into a failure here. The structural assertions below carry the signal.
       expect(parsed.isValid, isFalse);
-      expect(
-        parsed.errors.single,
-        contains('inconsistent cell count within the table'),
-      );
+      expect(parsed.errors.single, contains('cell count'));
 
       // The parse failure means no usable structure at all.
       expect(parsed.scenarios, isEmpty);
@@ -364,10 +365,7 @@ void main() {
       // SHOULD BE: parsed.errors is empty, the Examples body row is ['a|b'],
       // and one pickle is produced.
       expect(parsed.isValid, isFalse);
-      expect(
-        parsed.errors.single,
-        contains('inconsistent cell count within the table'),
-      );
+      expect(parsed.errors.single, contains('cell count'));
       expect(parsed.scenarios, isEmpty);
       expect(parsed.pickles, isEmpty);
     });
@@ -419,13 +417,19 @@ void main() {
       final parsed = parseFeature(await exportFeature(feature, [bdd]));
 
       // Only the first line gets the `#` comment marker, so the second line is
-      // emitted as bare text.
+      // emitted as bare text. The error names that line; the surrounding
+      // "got '...'" phrasing is cucumber_gherkin's and is not matched, so an
+      // upstream rephrasing cannot fail this test.
       //
       // SHOULD BE: parsed.errors is empty and parsed.comments holds the whole
-      // note, with every line commented.
+      // note, with every line commented, as in the single-line note above.
       expect(parsed.isValid, isFalse);
-      expect(parsed.errors.single, contains("got 'second line'"));
+      expect(parsed.errors.single, contains('second line'));
+
+      // The parse failure costs the whole file: not even the first line
+      // survives as the comment it was written as.
       expect(parsed.scenarios, isEmpty);
+      expect(parsed.comments, isEmpty);
     });
   });
 }

@@ -4,12 +4,6 @@ import 'package:bdd_framework/dart_test.dart';
 import 'package:cucumber_gherkin/cucumber_gherkin.dart';
 import 'package:cucumber_messages/cucumber_messages.dart';
 
-/// Exports the feature the [bdds] belong to and returns the generated file.
-///
-/// Each call must be given BDDs on a freshly built [BddFeature]: the reporter
-/// reaches the feature through `bdd.feature`, and `BddFeature.add` keeps the
-/// BDDs it is handed, so a feature reused across two calls exports the first
-/// call's scenarios again.
 Future<String> exportFeature(List<BddFramework> bdds) async {
   final directory = await Directory.systemTemp.createTemp('bdd-gherkin-');
   final previousDir = FeatureFileReporter.dir;

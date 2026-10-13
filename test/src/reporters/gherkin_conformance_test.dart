@@ -3,25 +3,6 @@ import 'package:test/test.dart';
 
 import 'gherkin_support.dart';
 
-/// Checks the `.feature` files produced by [FeatureFileReporter] against the
-/// official Gherkin grammar, using `cucumber_gherkin` as a dev dependency.
-///
-/// Every feature here is built with the public BDD API and exported at run
-/// time, then parsed. Nothing reads a checked-in `.feature` file, so the suite
-/// covers the exporter itself rather than a stale artifact, and it does not
-/// depend on `example/` or on the working directory.
-///
-/// Every test asserts the *structure* the parser built, not merely that
-/// parsing succeeded. That distinction matters: the newline-in-step-text case
-/// below parses without error yet silently yields the wrong scenarios, so a
-/// test that only checked for parse errors would pass while the export is
-/// broken.
-///
-/// Every test also asserts the behaviour the exporter *should* have, never the
-/// behaviour it currently has. The cases it gets wrong are marked `skip` with
-/// the defect named, so a passing run cannot be read as a claim that those
-/// cases work. Removing a `skip` is the whole of the test-side change when a
-/// fix lands.
 void main() {
   group('exported output is valid Gherkin', () {
     test('a user story, background, outline and examples round trip', () async {
@@ -72,8 +53,6 @@ void main() {
       expect(parsed.keyword, 'Feature');
       expect(parsed.name, 'Average Price');
       expect(parsed.language, 'en');
-
-      // `BddFeature.userStory` becomes the free-form feature description.
       expect(
         parsed.description,
         '  As a Stock Investor\n'
@@ -87,8 +66,6 @@ void main() {
       ]);
 
       final scenario = parsed.scenarios.single;
-
-      // `.example(...)` must promote `Scenario:` to `Scenario Outline:`.
       expect(scenario.keyword, 'Scenario Outline');
       expect(
         scenario.name,
@@ -102,8 +79,6 @@ void main() {
         'And The average price for the stock becomes <Average Price>.',
       ]);
 
-      // Both `.example(...)` calls must collapse into one Examples table,
-      // header first, with `int` and `double` cells rendered by `toString`.
       final examples = scenario.examples.single;
       expect(examples.keyword, 'Examples');
       expect(examples.name, '');
@@ -121,9 +96,6 @@ void main() {
         ['IBM', '8', '200.0', 'sell', '3', '30.0', '302.0'],
       ]);
 
-      // One pickle per Examples row, with `<placeholders>` substituted and the
-      // Background step prepended. Placeholder names containing spaces, such
-      // as `<How many>`, must resolve too.
       expect(parsed.pickles, hasLength(2));
       expect(parsed.pickles.first.stepTexts, [
         'The user has 100,000 dollars in cash-balance.',
@@ -141,7 +113,7 @@ void main() {
       ]);
     });
 
-    test('data tables and non-ASCII text round trip', () async {
+    test('data tables, commas and non-ASCII text round trip', () async {
       final feature = BddFeature('Buying and Selling Stocks');
       feature.background.given('The user has 120 dollars in cash-balance.');
 
@@ -163,7 +135,6 @@ void main() {
             )
             .when('The user sells 1 IBM.')
             .then('The user now has 2 IBM.')
-            // A comma in step text must not be mistaken for a cell separator.
             .and('AAPL is still 5, and GOOG is still 12.');
 
       final missing = Bdd(feature)
@@ -184,11 +155,8 @@ void main() {
         'Given The user has 120 dollars in cash-balance.',
       ]);
 
-      // Two BDDs sharing one feature must export as two scenarios under a
-      // single `Feature:`, in declaration order.
       expect(parsed.scenarios.map((scenario) => scenario.name), [
         'Selling stocks.',
-        // Non-ASCII right single quote (U+2019) must survive the round trip.
         'Selling stocks you don\u2019t have.',
       ]);
       expect(
@@ -204,8 +172,6 @@ void main() {
         'Then The user now has 2 IBM.',
         'And AAPL is still 5, and GOOG is still 12.',
       ]);
-
-      // Each `.table(...)` must attach to the step it was chained onto.
       expect(first.steps[0].table, [
         ['Ticker', 'Price'],
         ['AAPL', '50.25'],
@@ -264,8 +230,6 @@ void main() {
         'But an exception',
       ]);
 
-      // The Background step is prepended to the pickle, and `And` / `But`
-      // inherit the preceding keyword rather than appearing verbatim.
       expect(parsed.pickles.single.stepTexts, [
         'shared setup',
         'a precondition',
@@ -276,7 +240,8 @@ void main() {
       ]);
     });
 
-    test('a single-line note exports as a Gherkin comment', () async {
+    test('a single-line note exports as a Gherkin comment, not a step',
+        () async {
       final feature = BddFeature('single line note');
       final bdd = Bdd(feature)
         ..scenario('a scenario')
@@ -286,9 +251,6 @@ void main() {
 
       final parsed = parseFeature(await exportFeature(feature, [bdd]));
 
-      // `note()` capitalizes the first character and prefixes the line with
-      // `#`, so the parser reports it as a comment and not as a step. This is
-      // the baseline that the multi-line note further down deviates from.
       expect(parsed.errors, isEmpty);
       expect(parsed.comments, ['    # A note']);
       expect(parsed.scenarios.single.stepLines, [
@@ -308,8 +270,6 @@ void main() {
 
       final parsed = parseFeature(await exportFeature(feature, [bdd]));
 
-      // Gherkin only gives `\|`, `\\` and `\n` meaning inside a cell, so an
-      // unrecognised escape such as `\t` passes through untouched.
       expect(parsed.errors, isEmpty);
       expect(parsed.scenarios.single.steps.first.table, [
         ['path'],
@@ -322,25 +282,6 @@ void main() {
     });
   });
 
-  // ---------------------------------------------------------------------------
-  // The tests below assert the behaviour the exporter SHOULD have. They are
-  // skipped because it does not have it yet.
-  //
-  // They are written this way round on purpose. A test that asserted the
-  // current, broken output would pass, and a green suite would then read as
-  // "the exporter handles these cases" when it does not. Skipped tests that
-  // hold the target behaviour keep the expectation as the source of truth:
-  // green never certifies a bug, and a fix turns a test green rather than red.
-  //
-  // Each `skip` reason names the defect. When a fix lands, delete the `skip`;
-  // the assertions are already the ones it has to satisfy.
-  //
-  // The trade-off: while skipped, nothing here guards the current output, so a
-  // regression that changes it in some other way goes unnoticed. That is the
-  // intended cost of not overstating what the suite verifies.
-  //
-  // Each test names the issue tracking it.
-  // ---------------------------------------------------------------------------
   group('the exporter escapes cell values', () {
     // https://github.com/marcglasberg/bdd_framework/issues/18
     test('a pipe in a data table cell round trips', () async {
@@ -354,9 +295,6 @@ void main() {
 
       final parsed = parseFeature(await exportFeature(feature, [bdd]));
 
-      // Requires the exporter to write `ls \| grep x`. It currently writes the
-      // pipe raw, which splits one body cell into three against a one-column
-      // header and fails the parse on the cell count.
       expect(parsed.errors, isEmpty);
       expect(parsed.scenarios.single.steps.first.table, [
         ['cmd'],
@@ -366,7 +304,7 @@ void main() {
         ['cmd'],
         ['ls | grep x'],
       ]);
-    }, skip: 'The exporter does not escape `|` in data table cells.');
+    }, skip: 'The exporter writes `|` raw, so one cell splits into three.');
 
     // https://github.com/marcglasberg/bdd_framework/issues/18
     test('a pipe in an Examples cell round trips', () async {
@@ -387,11 +325,8 @@ void main() {
         ['v'],
         ['a|b'],
       ]);
-
-      // The pickle matters here: the escape has to survive placeholder
-      // substitution, so `<v>` resolves to the pipe and not to `a\|b`.
       expect(parsed.pickles.single.stepTexts, ['a value a|b', 'an outcome']);
-    }, skip: 'The exporter does not escape `|` in Examples cells.');
+    }, skip: 'The exporter writes `|` raw, so one cell splits into three.');
   });
 
   group('the exporter handles newlines in text', () {
@@ -405,13 +340,10 @@ void main() {
 
       final parsed = parseFeature(await exportFeature(feature, [bdd]));
 
-      // The output is currently valid Gherkin that describes a different test
-      // than the one written: the embedded newline lets `Scenario: injected`
-      // open a second scenario, which captures the `Then` and leaves the first
-      // scenario holding only the `Given`. This is why the suite asserts
-      // structure rather than parse success.
       expect(parsed.errors, isEmpty);
 
+      // Loose on the `Given` text on purpose: collapsing the newline to a
+      // space and moving the text into a DocString are both valid fixes.
       final scenario = parsed.scenarios.single;
       expect(scenario.name, 'a scenario');
       expect(scenario.steps, hasLength(2));
@@ -421,16 +353,9 @@ void main() {
 
       expect(parsed.pickles.single.name, 'a scenario');
       expect(parsed.pickles.single.stepTexts.last, 'an outcome');
-
-      // What the newline itself becomes is deliberately not pinned: collapsing
-      // it to a space and moving the text into a DocString are both valid
-      // fixes, and they differ only in the `Given` text. A DocString fix would
-      // additionally need `ParsedStep` to expose one. The invariant asserted
-      // here is the one both must satisfy: one scenario, one pickle, and no
-      // step lost.
     },
-        skip: 'The exporter writes newlines in step text raw, '
-            'so text after one can open a second scenario.');
+        skip: 'The exporter writes newlines raw, so text after one opens a '
+            'second scenario that steals the `Then`.');
 
     // https://github.com/marcglasberg/bdd_framework/issues/20
     test('a newline in a note comments every line', () async {
@@ -443,13 +368,6 @@ void main() {
 
       final parsed = parseFeature(await exportFeature(feature, [bdd]));
 
-      // Every line of the note must carry its own `#`, as the single-line note
-      // above does. Only the first line currently gets one, so the second is
-      // emitted as bare text and the parse error costs the whole file: not
-      // even line one survives as the comment it was written as.
-      //
-      // Indentation is not pinned, only the comment text. `note()` capitalizes
-      // the first character of the note, which is why line one is `First`.
       expect(parsed.errors, isEmpty);
       expect(
         parsed.comments.map((comment) => comment.trim()),
@@ -459,6 +377,8 @@ void main() {
         'Given a precondition',
         'Then an outcome',
       ]);
-    }, skip: 'The exporter only prefixes the first line of a note with `#`.');
+    },
+        skip: 'The exporter prefixes only the first line of a note with `#`, '
+            'so the bare second line fails the parse.');
   });
 }

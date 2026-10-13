@@ -4,26 +4,6 @@ import 'package:bdd_framework/dart_test.dart';
 import 'package:cucumber_gherkin/cucumber_gherkin.dart';
 import 'package:cucumber_messages/cucumber_messages.dart';
 
-/// Test helpers that run the exported `.feature` text through the official
-/// Gherkin parser (`cucumber_gherkin`) and flatten the resulting Cucumber
-/// Messages tree into plain Dart values.
-///
-/// The flattening matters: asserting on plain records and `List<List<String>>`
-/// keeps the tests readable, and it lets them check the *structure* the parser
-/// produced rather than only whether parsing threw.
-///
-/// Tests should assert against these plain types, not against the message
-/// tree, so a `cucumber_messages` upgrade cannot churn every expectation.
-
-/// Writes [feature] to a temporary directory with [FeatureFileReporter] and
-/// returns the generated `.feature` text.
-///
-/// [bdds] must already be built against [feature]. Reporters are registered
-/// after the BDDs are built because [BddRunner] only hands them to the
-/// reporters at run time (see `lib/src/core/bdd_runner.dart`).
-///
-/// The global [FeatureFileReporter.dir] and the static reporter list are both
-/// restored before returning, so these helpers cannot leak into other tests.
 Future<String> exportFeature(
   BddFeature feature,
   List<BddFramework> bdds,
@@ -36,19 +16,13 @@ Future<String> exportFeature(
     final reporter = FeatureFileReporter();
     BddReporter.set(reporter);
 
-    // `BddRunner.run()` is what registers each BDD with the active reporters.
-    // The [TestInvocation]s it hands to the delegate are discarded: their
-    // bodies only run step code and print to the console, and
-    // `FeatureFileReporter._generate()` writes `terms` without ever reading
-    // `passed`. Running them would not change a byte of the exported file.
+    // The delegate is a no-op: the reporter exports terms, never results.
     for (final bdd in bdds) {
       BddRunner().run(bdd, (_) {}, (_) {}, null);
     }
 
     await reporter.report();
 
-    // `FeatureFileReporter._generate()` catches every write error and only
-    // prints "Failed!", so a missing file would otherwise look like a pass.
     final files = directory
         .listSync()
         .whereType<File>()
@@ -70,10 +44,6 @@ Future<String> exportFeature(
   }
 }
 
-/// Parses [source] with `cucumber_gherkin` and flattens the result.
-///
-/// Parse failures surface as [ParsedFeature.errors] rather than exceptions,
-/// which is how `generateMessages` reports them.
 ParsedFeature parseFeature(String source, {String uri = 'bdd.feature'}) {
   final envelopes = generateMessages(source, uri);
 
@@ -198,7 +168,6 @@ List<ParsedStep> _steps(List<Step> steps) => <ParsedStep>[
         ),
     ];
 
-/// A `.feature` file as the official parser understood it.
 final class ParsedFeature {
   const ParsedFeature({
     required this.errors,
@@ -212,23 +181,14 @@ final class ParsedFeature {
     required this.comments,
   });
 
-  /// Parse error messages, verbatim. Empty when the source is valid Gherkin.
   final List<String> errors;
   final String keyword;
   final String name;
-
-  /// The free-form feature description, as written by `BddFeature.userStory`.
   final String description;
   final String language;
   final ParsedScenario? background;
   final List<ParsedScenario> scenarios;
-
-  /// One pickle per executable example. A `Scenario Outline` with two
-  /// `Examples` rows produces two pickles, with `<placeholders>` substituted.
   final List<ParsedPickle> pickles;
-
-  /// Every `#` comment line, each with its original indentation, in source
-  /// order. This is where `note()` output lands.
   final List<String> comments;
 }
 
@@ -241,7 +201,6 @@ final class ParsedScenario {
     required this.examples,
   });
 
-  /// `Scenario`, `Scenario Outline`, or `Background`.
   final String keyword;
   final String name;
   final String description;
@@ -260,11 +219,8 @@ final class ParsedStep {
     required this.table,
   });
 
-  /// `Given`, `When`, `Then`, `And`, or `But`.
   final String keyword;
   final String text;
-
-  /// Header row first, or null when the step carries no data table.
   final List<List<String>>? table;
 }
 
@@ -277,8 +233,6 @@ final class ParsedExamples {
 
   final String keyword;
   final String name;
-
-  /// Header row first.
   final List<List<String>> table;
 }
 

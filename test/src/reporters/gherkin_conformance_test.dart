@@ -18,8 +18,7 @@ import 'gherkin_support.dart';
 /// broken.
 void main() {
   group('exported output is valid Gherkin', () {
-    test('a user story, background, outline and examples round trip',
-        () async {
+    test('a user story, background, outline and examples round trip', () async {
       final feature = BddFeature.userStory(
         'Average Price',
         asA: 'Stock Investor',

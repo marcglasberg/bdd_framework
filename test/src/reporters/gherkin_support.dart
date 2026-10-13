@@ -10,6 +10,12 @@ Future<String> exportFeature(
 ) async {
   final directory = await Directory.systemTemp.createTemp('bdd-gherkin-');
   final previousDir = FeatureFileReporter.dir;
+  final runInfo = BddReporter.runInfo;
+  final previousTestCount = runInfo.testCount;
+  final previousTotalTestCount = runInfo.totalTestCount;
+  final previousSkipCount = runInfo.skipCount;
+  final previousPassedCount = runInfo.passedCount;
+  final previousFailedCount = runInfo.failedCount;
 
   try {
     FeatureFileReporter.dir = directory.path;
@@ -40,6 +46,12 @@ Future<String> exportFeature(
   } finally {
     BddReporter.set();
     FeatureFileReporter.dir = previousDir;
+    runInfo
+      ..testCount = previousTestCount
+      ..totalTestCount = previousTotalTestCount
+      ..skipCount = previousSkipCount
+      ..passedCount = previousPassedCount
+      ..failedCount = previousFailedCount;
     if (directory.existsSync()) directory.deleteSync(recursive: true);
   }
 }

@@ -219,6 +219,45 @@ abstract class _BaseTerm {
 
 enum _Variation { term, and, but, note }
 
+final _lineBreak = RegExp(r'\r\n|\r|\n');
+final _lineBreaks = RegExp(r'(?:[ \t]*(?:\r\n|\r|\n)[ \t]*)+');
+
+/// Joins the lines of [text] with a single space. Gherkin keyword lines
+/// (steps, scenario and feature names) can't span lines, and a line break
+/// would make the rest of the text be read as new Gherkin.
+String _singleLine(String text) => text.replaceAll(_lineBreaks, ' ');
+
+/// Escapes a table cell value so it is read back exactly as written:
+/// `|` becomes `\|` and a line break becomes `\n`.
+///
+/// A backslash is only escaped (as `\\`) where Gherkin would otherwise read it
+/// as the start of an escape: before `\`, `|` or `n`, before a line break, or
+/// at the end of the value. So common values like `C:\tmp` or `\d+` are
+/// written unchanged.
+String _escapeCell(String value) {
+  final text = value.replaceAll(_lineBreak, '\n');
+  final result = StringBuffer();
+  for (var i = 0; i < text.length; i++) {
+    final char = text[i];
+    final next = (i + 1 < text.length) ? text[i + 1] : null;
+    if (char == '|') {
+      result.write(r'\|');
+    } else if (char == '\n') {
+      result.write(r'\n');
+    } else if (char == r'\' &&
+        (next == null ||
+            next == r'\' ||
+            next == '|' ||
+            next == 'n' ||
+            next == '\n')) {
+      result.write(r'\\');
+    } else {
+      result.write(char);
+    }
+  }
+  return result.toString();
+}
+
 /// A marker mixin to indicate that a [_BaseTerm] can act as a trigger to run
 /// the test.
 ///
@@ -354,15 +393,27 @@ abstract class BddTerm extends _BaseTerm {
       return text;
   }
 
+  /// A note becomes one comment line per line of text, so every line stays a
+  /// comment. Any other term is kept on a single line.
   @override
-  String toString([BddConfig config = BddConfig._default]) =>
+  String toString([BddConfig config = BddConfig._default]) {
+    if (variation == _Variation.note) {
+      return _capitalize(text)
+          .split(_lineBreak)
+          .map((line) => _line(config, line))
+          .join(config.endOfLineChar);
+    }
+    return _line(config, _singleLine(text));
+  }
+
+  String _line(BddConfig config, String content) =>
       keywordPrefix(config) +
       spaces(config) +
       _keyword(config) +
       keywordSuffix(config) +
       ' ' +
       prefix(config) +
-      _capitalize(text) +
+      content +
       suffix(config);
 }
 
@@ -920,7 +971,8 @@ abstract class BddTableTerm extends BddTerm {
       //
       for (val value in _row.values) {
         int? maxValue1 = sizes[value.name];
-        int maxValue2 = max(value.name.length, value.toString(config).length);
+        int maxValue2 = max(_escapeCell(value.name).length,
+            _escapeCell(value.toString(config)).length);
         int maxValue =
             (maxValue1 == null) ? maxValue2 : max(maxValue1, maxValue2);
 
@@ -942,7 +994,7 @@ abstract class BddTableTerm extends BddTerm {
         '$tableDivider$space' +
         rows.first.values.map((val) {
           int length = sizes[val.name] ?? 50;
-          return val.name.padRight(length, space);
+          return _escapeCell(val.name).padRight(length, space);
         }).join('$space$tableDivider$space') +
         '$space$tableDivider';
 
@@ -951,7 +1003,7 @@ abstract class BddTableTerm extends BddTerm {
           '$tableDivider$space' +
           row.values.map((val) {
             int length = sizes[val.name] ?? 50;
-            return val.toString(config).padRight(length, space);
+            return _escapeCell(val.toString(config)).padRight(length, space);
           }).join('$space$tableDivider$space') +
           '$space$tableDivider';
     }).toList();
@@ -1273,9 +1325,10 @@ abstract class BddReporter {
   }
 
   /// Keeps A-Z 0-9, make it lowercase, and change spaces into underline.
-  String normalizeFileName(String name) =>
-      name.trim().splitMapJoin(RegExp(r"""[ "'#<$+%>!`&*|{?=}/:\\@^.]"""),
-          onMatch: (m) => m[0] == ' ' ? '_' : '',
+  String normalizeFileName(String name) => _singleLine(name)
+      .trim()
+      .splitMapJoin(RegExp(r"""[\s"'#<$+%>!`&*|{?=}/:\\@^.]"""),
+          onMatch: (m) => m[0]!.trim().isEmpty ? '_' : '',
           onNonMatch: (m) => m.toLowerCase());
 }
 

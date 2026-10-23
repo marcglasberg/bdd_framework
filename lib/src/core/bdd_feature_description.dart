@@ -42,17 +42,17 @@ class FeatureDescription {
       result += config.spaces +
           config.keywords.asA +
           ' ' +
-          asA! +
+          _singleLine(asA!) +
           config.endOfLineChar;
       result += config.spaces +
           config.keywords.iWant +
           ' ' +
-          iWant! +
+          _singleLine(iWant!) +
           config.endOfLineChar;
       result += config.spaces +
           config.keywords.soThat +
           ' ' +
-          soThat! +
+          _singleLine(soThat!) +
           config.endOfLineChar;
       return result;
     }

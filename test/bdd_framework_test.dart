@@ -572,6 +572,7 @@ void main() {
     expect(reporter.normalizeFileName("A'\"#%:/ b<>\}{} c\$!@?= d+`^/: "), "a_b_c_d");
     expect(reporter.normalizeFileName("a b  C-D_e.fgh"), "a_b__c-d_efgh");
     expect(reporter.normalizeFileName("A&B#C^D+E/F\\G\$"), "abcdefg");
+    expect(reporter.normalizeFileName("a \n b\r\nc\td"), "a_b_c_d");
   });
 }
 

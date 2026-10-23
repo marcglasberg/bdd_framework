@@ -99,7 +99,7 @@ class BddFeature {
         config.keywordSuffix.feature +
         ' ' +
         config.prefix.feature +
-        title +
+        _singleLine(title) +
         config.suffix.feature +
         config.endOfLineChar;
 

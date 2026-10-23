@@ -26,3 +26,5 @@ dependencies:
   test: ^1.24.0
 dev_dependencies:
   flutter_lints: ^6.0.0
+  cucumber_gherkin: ^42.0.1
+  cucumber_messages: ^34.2.1

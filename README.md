@@ -958,6 +958,9 @@ The **BDD Framework** package comes out of the box with 2 reporters:
 
 * `FeatureFileReporter()` writes the results into `.feature` files that contain your BDDs in
   <a href='https://en.wikipedia.org/wiki/Cucumber_(software)#Gherkin_language'>Gherkin language</a>.
+    * The generated files are valid Gherkin, which other Cucumber tools can read. This package's
+      own tests make sure of it, by reading the generated files with Cucumber's official
+      <a href='https://pub.dev/packages/cucumber_gherkin'>Gherkin parser</a>.
     * If the parameter `clearAllOutputBeforeRun` is `true`, all previous feature files will be
       deleted and recreated each time you run the tests. Only the `.feature` files directly
       inside `FeatureFileReporter.dir` are deleted. Other files, subdirectories and links are

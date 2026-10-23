@@ -49,7 +49,7 @@ class BddTableRows {
       (BddTableValues btv) => btv.val(name) == value,
       orElse: () {
         throw AssertionError(
-            'There is no table with name:"$name" and value: "$name".');
+            'There is no table with name:"$name" and value: "$value".');
       },
     );
   }
@@ -69,7 +69,7 @@ class BddTableRows {
           const ListEquality().equals(_values, other._values);
 
   @override
-  int get hashCode => _values.hashCode;
+  int get hashCode => const ListEquality<BddTableValues>().hash(_values);
 }
 
 class BddMultipleTableValues {
@@ -103,10 +103,13 @@ class BddMultipleTableValues {
       identical(this, other) ||
       (other is BddMultipleTableValues) &&
           (runtimeType == other.runtimeType) &&
-          const MapEquality().equals(_tables, other._tables);
+          _tablesEquality.equals(_tables, other._tables);
 
   @override
-  int get hashCode => _tables.hashCode;
+  int get hashCode => _tablesEquality.hash(_tables);
+
+  static const _tablesEquality = MapEquality<String, List<BddTableValues>>(
+      values: ListEquality<BddTableValues>());
 }
 
 /// The example values are encapsulated as a [BddTableValues] object to be used by the code runs.
@@ -138,5 +141,5 @@ class BddTableValues {
           const MapEquality().equals(_map, other._map);
 
   @override
-  int get hashCode => _map.hashCode;
+  int get hashCode => const MapEquality<String, Object?>().hash(_map);
 }

@@ -34,8 +34,12 @@ void main() {
 
     Bdd()
         .scenario('Widget overflow is not ignored')
-        .then('an overflowing row')
-        .run((ctx, tester) => tester.pumpWidget(overflowingRow()));
+        .given('an overflowing row')
+        .code((ctx, tester) => tester.pumpWidget(overflowingRow()))
+        .when('a later step')
+        .code((ctx, tester) => fail('unexpected later code'))
+        .then('it never runs')
+        .run();
   });
 }
 

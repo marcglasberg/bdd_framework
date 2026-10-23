@@ -39,10 +39,18 @@ void main() {
     expect(output, contains('expected non-overflow Flutter error'));
     expect(output, isNot(contains('unexpected later code')));
     expect(output, contains('Bad state: expected widget async failure'));
-    expect(output, contains('TEST 1 FAILED!'));
-    expect(output, contains('TEST 2 FAILED!'));
     // With BddFlutter.ignoreOverflow off, an overflow fails the test.
     expect(output, contains('A RenderFlex overflowed by'));
+    // Errors Flutter reports without throwing, like an overflow, still make
+    // the BDD print FAILED, and stop the steps after them.
+    for (final test in [1, 2, 3, 4]) {
+      expect(output, contains('TEST $test FAILED!'));
+    }
+    expect(output, isNot(contains('PASSED!')));
+    // The original error is shown once, with its details, not twice.
+    expect('EXCEPTION CAUGHT BY RENDERING LIBRARY'.allMatches(output),
+        hasLength(1));
+    expect(output, contains('The relevant error-causing widget was'));
     _expectFilteredStack(output);
   }, timeout: const Timeout(Duration(minutes: 3)));
 }

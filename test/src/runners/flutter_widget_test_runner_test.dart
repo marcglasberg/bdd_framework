@@ -169,6 +169,27 @@ void main() {
       ));
       expect(find.byType(Row), findsOneWidget);
     });
+
+    // A step fails when Flutter reports an error without throwing it, unless
+    // the test takes that error itself. The failing case is in
+    // flutter_runner_process_test.dart.
+    Bdd(feature)
+        .scenario('A Flutter error the test takes does not fail the step')
+        .given('A step where Flutter reports an error')
+        .code((ctx, tester) async {
+          FlutterError.reportError(FlutterErrorDetails(
+              exception: FlutterError('expected and handled')));
+          expect(
+            tester.takeException(),
+            isA<FlutterError>()
+                .having((e) => e.message, 'message', 'expected and handled'),
+          );
+        })
+        .when('The next step runs')
+        .then('The test passes')
+        .run((ctx, tester) {
+          expect(ctx.example, isNotNull);
+        });
   });
 
   group('table values', () {

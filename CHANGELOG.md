@@ -18,6 +18,14 @@ Sponsored by [MyText.ai](https://mytext.ai)
       fail to be created.
   The console output uses the same formatting, so it changes the same way.
 
+* In widget tests (`flutter_widget_test.dart`), an error Flutter reports
+  without throwing it, like a layout overflow when
+  `BddFlutter.ignoreOverflow` is `false`, now fails the step where it happens.
+  Previously the BDD printed `TEST PASSED!` and Flutter failed the test only
+  afterwards. The steps after it don't run, and the error is shown with its
+  original details. An error the test takes itself with
+  `tester.takeException()` doesn't fail the step.
+
 * `ctx.table(...).rowWhere(...)` now shows the value it looked for in its error
   message, instead of the column name twice.
 

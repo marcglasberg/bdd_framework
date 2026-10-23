@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:bdd_framework/dart_test.dart';
 import 'package:test/test.dart';
 
+import 'stdout_capture.dart';
+
 void main() {
   test('reports shared Background once for When/Then entry scenarios',
       () async {
@@ -72,6 +74,36 @@ void main() {
     expect(otherFile.readAsStringSync(), 'keep');
     expect(nestedFeature.readAsStringSync(), 'keep');
     expect(File('${directory.path}/new.feature').existsSync(), isTrue);
+  });
+
+  test('a feature that cannot be written does not stop the others', () async {
+    final directory = await Directory.systemTemp.createTemp('bdd-report-test-');
+    final previousDirectory = FeatureFileReporter.dir;
+    addTearDown(() async {
+      BddReporter.set();
+      FeatureFileReporter.dir = previousDirectory;
+      await directory.delete(recursive: true);
+    });
+    // A directory where the file should go makes creating the file fail.
+    Directory('${directory.path}/blocked.feature').createSync();
+    FeatureFileReporter.dir = directory.path;
+    final reporter = FeatureFileReporter();
+    BddReporter.set(reporter);
+    for (final title in ['blocked', 'written']) {
+      final bdd = Bdd(BddFeature(title));
+      bdd.scenario('flow').then('result');
+      BddRunner().run(bdd, (_) {}, (_) {}, null);
+    }
+
+    final output = await captureStdout(reporter.report);
+
+    expect(output, contains('Failed! Could not generate feature "blocked": '));
+    expect(output, contains('blocked.feature'));
+    expect(output, contains('written.feature'));
+    expect(output, contains('Done!'));
+    expect(output, endsWith('Finished.\n'));
+    expect(File('${directory.path}/written.feature').readAsStringSync(),
+        'Feature: written\n\n  Scenario: flow\n    Then result\n');
   });
 
   test('an empty dir means the current directory, not the filesystem root',

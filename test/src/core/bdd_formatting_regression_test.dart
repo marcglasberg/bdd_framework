@@ -72,6 +72,35 @@ void main() {
           '\tI want to manage users\r\n\tSo that I can control access\r\n');
     });
 
+    test('a multi-line note repeats keyword, prefix and suffix on each line',
+        () {
+      final note =
+          Bdd().scenario('s').given('g').note('first\r\nsecond\nthird');
+      const config = BddConfig(
+        endOfLineChar: '\r\n',
+        keywordPrefix: BddKeywords.only(comment: '[kp]'),
+        keywordSuffix: BddKeywords.only(comment: '[ks]'),
+        prefix: BddKeywords.only(comment: '[p]'),
+        suffix: BddKeywords.only(comment: '[s]'),
+      );
+      expect(
+          note.toString(config),
+          '[kp]    #[ks] [p]First[s]\r\n'
+          '[kp]    #[ks] [p]second[s]\r\n'
+          '[kp]    #[ks] [p]third[s]');
+    });
+
+    test('a multi-line note stays aligned when keywords are right aligned', () {
+      final note = Bdd().scenario('s').given('g').note('first\nsecond');
+      expect(note.toString(const BddConfig(rightAlignKeywords: true)),
+          '        # First\n        # second');
+    });
+
+    test('line breaks in a step become a single space', () {
+      final step = Bdd().scenario('s').given('one \n  two\n\nthree');
+      expect(step.toString(), '    Given one two three');
+    });
+
     test('examples preserve localized headings, values and CRLF', () {
       final examples =
           Bdd().scenario('examples').then('value').example(val('狀態', '好'));

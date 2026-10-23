@@ -2,6 +2,42 @@ Sponsored by [MyText.ai](https://mytext.ai)
 
 [![](https://raw.githubusercontent.com/marcglasberg/bdd_framework/master/example/SponsoredByMyTextAi.png)](https://mytext.ai)
 
+## 5.0.3
+
+* Exported feature files are now always valid Gherkin
+  ([#18](https://github.com/marcglasberg/bdd_framework/issues/18),
+  [#19](https://github.com/marcglasberg/bdd_framework/issues/19),
+  [#20](https://github.com/marcglasberg/bdd_framework/issues/20)):
+    * A `|` in a table or `Examples` cell is written as `\|`, and a line break
+      as `\n`. A backslash is escaped only where Gherkin would misread it, so
+      values like `C:\tmp` or `\d+` are written unchanged.
+    * A line break in a step, scenario name, feature title or user story is
+      written as a space, instead of starting a new scenario or step.
+    * Each line of a multi-line `note()` becomes its own `#` comment.
+    * A feature title with a line break no longer makes the `.feature` file
+      fail to be created.
+  The console output uses the same formatting, so it changes the same way.
+
+* In widget tests (`flutter_widget_test.dart`), an error Flutter reports
+  without throwing it, like a layout overflow when
+  `BddFlutter.ignoreOverflow` is `false`, now fails the step where it happens.
+  Previously the BDD printed `TEST PASSED!` and Flutter failed the test only
+  afterwards. The steps after it don't run, and the error is shown with its
+  original details. An error the test takes itself with
+  `tester.takeException()` doesn't fail the step.
+
+* `ctx.table(...).rowWhere(...)` now shows the value it looked for in its error
+  message, instead of the column name twice.
+
+* `BddContext`, `BddTableRows`, `BddMultipleTableValues` and `BddTableValues`
+  with the same values are now equal and have the same `hashCode`.
+
+* When `FeatureFileReporter` can't write a feature file, it now says which
+  feature failed and why.
+
+* Thanks to [Andrew Friedman](https://github.com/Fried-man) for the Gherkin
+  conformance tests that found the export bugs.
+
 ## 5.0.2
 
 * `FeatureFileReporter(clearAllOutputBeforeRun: true)` now deletes only the

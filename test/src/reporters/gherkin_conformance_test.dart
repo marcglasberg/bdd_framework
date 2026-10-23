@@ -302,7 +302,7 @@ void main() {
         ['cmd'],
         ['ls | grep x'],
       ]);
-    }, skip: 'The exporter writes `|` raw, so one cell splits into three.');
+    });
 
     // https://github.com/marcglasberg/bdd_framework/issues/18
     test('a pipe in an Examples cell round trips', () async {
@@ -324,7 +324,7 @@ void main() {
         ['a|b'],
       ]);
       expect(parsed.pickles.single.stepTexts, ['a value a|b', 'an outcome']);
-    }, skip: 'The exporter writes `|` raw, so one cell splits into three.');
+    });
   });
 
   group('the exporter handles newlines in text', () {
@@ -351,9 +351,7 @@ void main() {
 
       expect(parsed.pickles.single.name, 'a scenario');
       expect(parsed.pickles.single.stepTexts.last, 'an outcome');
-    },
-        skip: 'The exporter writes newlines raw, so text after one opens a '
-            'second scenario that steals the `Then`.');
+    });
 
     // https://github.com/marcglasberg/bdd_framework/issues/20
     test('a newline in a note comments every line', () async {
@@ -375,8 +373,136 @@ void main() {
         'Given a precondition',
         'Then an outcome',
       ]);
-    },
-        skip: 'The exporter prefixes only the first line of a note with `#`, '
-            'so the bare second line fails the parse.');
+    });
+
+    test('a newline in a scenario name or feature title adds nothing',
+        () async {
+      final feature = BddFeature('title one\nScenario: injected');
+      final bdd = Bdd(feature)
+        ..scenario('name one\nScenario: injected')
+            .given('a precondition')
+            .then('an outcome');
+
+      final parsed = parseFeature(await exportFeature([bdd]));
+
+      expect(parsed.errors, isEmpty);
+      expect(parsed.name, 'title one Scenario: injected');
+      expect(parsed.scenarios.single.name, 'name one Scenario: injected');
+      expect(parsed.scenarios.single.stepLines, [
+        'Given a precondition',
+        'Then an outcome',
+      ]);
+    });
+
+    test('a newline in a user story keeps each part on its line', () async {
+      final feature = BddFeature.userStory(
+        'user story',
+        asA: 'user\nScenario: injected',
+        iWant: 'to\nlog in',
+        soThat: 'I\r\ncan work',
+      );
+      final bdd = Bdd(feature)
+        ..scenario('a scenario').given('a precondition').then('an outcome');
+
+      final parsed = parseFeature(await exportFeature([bdd]));
+
+      expect(parsed.errors, isEmpty);
+      expect(
+        parsed.description,
+        '  As a user Scenario: injected\n'
+        '  I want to log in\n'
+        '  So that I can work',
+      );
+      expect(parsed.scenarios.single.name, 'a scenario');
+    });
+  });
+
+  group('cell values with backslashes and line breaks round trip', () {
+    // The parser reads `\\`, `\|` and `\n` as escapes. A backslash anywhere
+    // else is kept as is, so values like `C:\tmp` need no escaping.
+    final values = <String, String>{
+      'windows path': r'C:\tmp\new',
+      'regex': r'\d+\s*',
+      'backslash before a pipe': r'a\|b',
+      'two backslashes': r'a\\b',
+      'backslash and n': r'a\nb',
+      'trailing backslash': r'ends with \',
+      'only a backslash': r'\',
+      'line break': 'line one\nline two',
+      'CRLF line break': 'line one\r\nline two',
+      'backslash before a line break': 'a\\\nb',
+      'pipes everywhere': '|a||b|',
+    };
+
+    for (final MapEntry(key: description, value: value) in values.entries) {
+      test('$description, in a data table and in Examples', () async {
+        final expected = value.replaceAll('\r\n', '\n');
+        final feature = BddFeature('cell values');
+        final tableBdd = Bdd(feature)
+          ..scenario('a table')
+              .given('a table')
+              .table('T', row(val('v', value), val(value, 'x')))
+              .when('an action')
+              .then('an outcome');
+        final examplesBdd = Bdd(feature)
+          ..scenario('examples')
+              .given('a value <v>')
+              .then('an outcome')
+              .example(val('v', value));
+
+        final parsed =
+            parseFeature(await exportFeature([tableBdd, examplesBdd]));
+
+        expect(parsed.errors, isEmpty);
+        expect(parsed.scenarios.first.steps.first.table, [
+          ['v', expected],
+          [expected, 'x'],
+        ]);
+        expect(parsed.scenarios.last.examples.single.table, [
+          ['v'],
+          [expected],
+        ]);
+        expect(parsed.pickles.last.stepTexts.first, 'a value $expected');
+      });
+    }
+
+    test('values that need no escaping are written unchanged', () async {
+      final feature = BddFeature('unchanged');
+      final bdd = Bdd(feature)
+        ..scenario('a scenario')
+            .given('a table')
+            .table('T', row(val('path', r'C:\tmp'), val('regex', r'\d+')))
+            .when('an action')
+            .then('an outcome');
+
+      final text = await exportFeature([bdd]);
+
+      expect(text, contains(r'      | path   | regex |' '\n'));
+      expect(text, contains(r'      | C:\tmp | \d+   |' '\n'));
+    });
+
+    test('escaped values keep the columns aligned', () async {
+      final feature = BddFeature('aligned');
+      final bdd = Bdd(feature)
+        ..scenario('a scenario')
+            .given('a table')
+            .table(
+              'T',
+              row(val('cmd', 'ls | grep x'), val('n', 1)),
+              row(val('cmd', 'pwd'), val('n', 2)),
+            )
+            .when('an action')
+            .then('an outcome');
+
+      final text = await exportFeature([bdd]);
+
+      expect(
+        text,
+        contains('      | cmd          | n |\n'
+            r'      | ls \| grep x | 1 |'
+            '\n'
+            '      | pwd          | 2 |\n'),
+      );
+    });
   });
 }

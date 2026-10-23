@@ -82,7 +82,8 @@ class FeatureFileReporter extends BddReporter {
       }
       //
       catch (e) {
-        stdout.writeln("Failed!");
+        stdout.writeln(
+            'Failed! Could not generate feature "${feature.title}": $e');
       }
       //
       finally {

@@ -76,7 +76,8 @@ class BddExample extends BddTerm with BddRunnable, BddExampleAttachable {
     for (Set<val> row in rows) {
       for (val value in row) {
         int? maxValue1 = sizes[value.name];
-        int maxValue2 = max(value.name.length, value.toString(config).length);
+        int maxValue2 = max(_escapeCell(value.name).length,
+            _escapeCell(value.toString(config)).length);
         int maxValue =
             (maxValue1 == null) ? maxValue2 : max(maxValue1, maxValue2);
 
@@ -98,7 +99,7 @@ class BddExample extends BddTerm with BddRunnable, BddExampleAttachable {
         '$tableDivider$space' +
         rows.first.map((val) {
           int length = sizes[val.name] ?? 50;
-          return val.name.padRight(length, space);
+          return _escapeCell(val.name).padRight(length, space);
         }).join('$space$tableDivider$space') +
         '$space$tableDivider';
 
@@ -107,7 +108,7 @@ class BddExample extends BddTerm with BddRunnable, BddExampleAttachable {
           '$tableDivider$space' +
           row.map((val) {
             int length = sizes[val.name] ?? 50;
-            return val.toString(config).padRight(length, space);
+            return _escapeCell(val.toString(config)).padRight(length, space);
           }).join('$space$tableDivider$space') +
           '$space$tableDivider';
     }).toList();

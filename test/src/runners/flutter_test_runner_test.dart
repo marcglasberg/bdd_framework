@@ -80,6 +80,52 @@ void main() {
     });
   });
 
+  group('overflow', () {
+    final reported = <FlutterErrorDetails>[];
+    FlutterExceptionHandler? previousHandler;
+
+    // The runner wraps whatever handler is set when the test starts.
+    setUp(() {
+      previousHandler = FlutterError.onError;
+      reported.clear();
+      FlutterError.onError = reported.add;
+    });
+    tearDown(() => FlutterError.onError = previousHandler);
+
+    FlutterErrorDetails details(String message) =>
+        FlutterErrorDetails(exception: FlutterError(message));
+
+    Bdd(feature)
+        .scenario('Only RenderFlex overflow errors are ignored')
+        .given('ignoreOverflow is on')
+        .when('Flutter reports an overflow and another error')
+        .then('Only the other error reaches the previous handler')
+        .run((ctx) {
+      expect(BddFlutter.ignoreOverflow, isTrue);
+      FlutterError.onError!(
+          details('A RenderFlex overflowed by 90 pixels on the right.'));
+      FlutterError.onError!(details('Something else went wrong.'));
+      expect(reported.map((d) => (d.exception as FlutterError).message),
+          ['Something else went wrong.']);
+    });
+
+    group('with ignoreOverflow off', () {
+      setUp(() => BddFlutter.ignoreOverflow = false);
+      tearDown(() => BddFlutter.ignoreOverflow = true);
+
+      Bdd(feature)
+          .scenario('No error is ignored')
+          .given('ignoreOverflow is off')
+          .when('Flutter reports an overflow')
+          .then('It reaches the previous handler')
+          .run((ctx) {
+        FlutterError.onError!(
+            details('A RenderFlex overflowed by 90 pixels on the right.'));
+        expect(reported, hasLength(1));
+      });
+    });
+  });
+
   group('platform cleanup', () {
     Bdd(feature)
         .scenario('Cleans up debugDefaultTargetPlatformOverride after test')

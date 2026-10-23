@@ -21,6 +21,18 @@ void main() {
         completed.where((event) => event['result'] == 'success'), hasLength(1));
     expect(result.stdout, contains('fixture reporter completed'));
     expect(result.stdout, isNot(contains('unexpected later code')));
+    // BddReporter.reportAll() prints a summary before running the reporters.
+    expect(
+        result.stdout,
+        stringContainsInOrder([
+          'RESULTS',
+          'TOTAL: 14 tests (13 BDDs)',
+          'PASSED: 1 tests',
+          'FAILED: 13 tests',
+          'SKIPPED: 0 tests',
+          'Running the _ResultReporter...',
+          'fixture reporter completed',
+        ]));
     expect(
         events.where((event) =>
             event['type'] == 'print' &&
@@ -51,6 +63,17 @@ void main() {
     expect(completed.where((event) => event['skipped'] == true), hasLength(1));
     expect(result.stdout, contains('fixture reporter completed'));
     expect(result.stdout, isNot(contains('unexpected skipped code')));
+    expect(
+        result.stdout,
+        stringContainsInOrder([
+          'RESULTS',
+          'TOTAL: 3 tests (3 BDDs)',
+          'PASSED: 2 tests',
+          'FAILED: 0 tests',
+          'SKIPPED: 1 tests',
+          'Running the _ResultReporter...',
+          'fixture reporter completed',
+        ]));
   }, timeout: const Timeout(Duration(minutes: 2)));
 }
 

@@ -49,5 +49,8 @@ void _testDelegate(TestInvocation invocation) {
     onPlatform: invocation.onPlatform,
     retry: invocation.retry,
     testOn: invocation.testOn,
+    // Only set when the user marks a test with `.only`, which itself warns.
+    // ignore: invalid_use_of_do_not_submit_member
+    solo: invocation.only,
   );
 }

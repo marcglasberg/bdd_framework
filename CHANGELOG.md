@@ -2,6 +2,15 @@ Sponsored by [MyText.ai](https://mytext.ai)
 
 [![](https://raw.githubusercontent.com/marcglasberg/bdd_framework/master/example/SponsoredByMyTextAi.png)](https://mytext.ai)
 
+## 5.1.0
+
+* `Bdd(feature).only` runs only that BDD while you work on it, like `test.only`
+  in Jest. The other BDDs in the same test file are skipped, unless they are
+  also marked with `.only`. It works with the Dart, Flutter and Flutter widget
+  runners. Since it's meant to be temporary, the analyzer warns about it, as a
+  reminder to remove it before committing
+  ([#3](https://github.com/marcglasberg/bdd_framework/issues/3)).
+
 ## 5.0.3
 
 * Exported feature files are now always valid Gherkin

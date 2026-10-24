@@ -284,6 +284,19 @@ void main() {
     expect(invocations.single.timeout, const Timeout(Duration(seconds: 42)));
   });
 
+  test('only() marks the test to run alone, and is off by default', () {
+    final invocations = <TestInvocation>[];
+    final normal = Bdd().scenario('normal').then('result').bdd;
+    // ignore: invalid_use_of_do_not_submit_member
+    final only = Bdd().only.scenario('only').then('result').bdd;
+
+    for (final bdd in [normal, only]) {
+      BddRunner().run(bdd, (_) {}, invocations.add, null);
+    }
+
+    expect(invocations.map((invocation) => invocation.only), [false, true]);
+  });
+
   test('TestResult exposes the rendered lines and the skip flag', () {
     final reporter = _NoOpReporter();
     BddReporter.set(reporter);

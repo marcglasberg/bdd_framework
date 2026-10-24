@@ -430,6 +430,7 @@ class BddFramework {
   Duration? _timeout;
   TestRunConfig? _config;
   bool _skip;
+  bool _only;
   final List<CodeRun> codeRuns;
 
   /// Nulls means the test was not run yet.
@@ -441,6 +442,7 @@ class BddFramework {
       : terms = [],
         _timeout = null,
         _skip = false,
+        _only = false,
         codeRuns = [],
         passed = [];
 
@@ -483,6 +485,20 @@ class BddFramework {
   /// Skips running this test.
   BddFramework get skip {
     _skip = true;
+    return this;
+  }
+
+  /// Runs only this test, while you work on it. The other tests in the same
+  /// test file are skipped, unless they are also marked with [only].
+  /// This is like `test.only` in Jest, or `solo` in `package:test`.
+  ///
+  /// It's meant to be temporary, so the analyzer warns about it, as a reminder
+  /// to remove it before committing.
+  ///
+  /// Example: `Bdd(feature).only.scenario('...')...`
+  @doNotSubmit
+  BddFramework get only {
+    _only = true;
     return this;
   }
 

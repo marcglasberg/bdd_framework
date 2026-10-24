@@ -580,6 +580,28 @@ Feature: Buying and Selling Stocks
 ✔ TEST 1 PASSED!
 ```
 
+### Skipping a BDD, or running only one
+
+To skip a BDD, add `.skip` after `Bdd(feature)`:
+
+```dart
+Bdd(feature).skip
+    .scenario('Buying stocks.')
+    ...
+```
+
+While you work on a BDD, you can add `.only` to run just that one. The other BDDs in the same
+test file are skipped, unless they are also marked with `.only`. This is like `test.only` in Jest.
+
+```dart
+Bdd(feature).only
+    .scenario('Buying stocks.')
+    ...
+```
+
+Since `.only` is meant to be temporary, the analyzer warns about it, as a reminder to remove it
+before committing.
+
 ---
 
 ## 8. BDD Tables

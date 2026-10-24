@@ -53,6 +53,18 @@ void main() {
     expect(output, contains('The relevant error-causing widget was'));
     _expectFilteredStack(output);
   }, timeout: const Timeout(Duration(minutes: 3)));
+
+  for (final runner in ['flutter_runner', 'flutter_widget_runner']) {
+    test('.only runs only the marked tests, and skips the others ($runner)',
+        () async {
+      final result = await _runFlutterFixture('${runner}_only.dart');
+      final events = _events(result);
+
+      expect(result.exitCode, 0, reason: '${result.stdout}');
+      expect(_ranOrSkipped(events), _onlyExpected);
+      expect(_printed(events), isNot(contains('unexpected run')));
+    }, timeout: const Timeout(Duration(minutes: 3)));
+  }
 }
 
 /// The runners filter their own frames, and the matcher's, out of the stack.
@@ -115,3 +127,32 @@ String _printed(List<Map<String, dynamic>> events) => [
       for (final event in events)
         if (event['type'] == 'print') event['message'] as String,
     ].join('\n').replaceAll(RegExp(r'\x1B\[[0-9;]*m'), '');
+
+/// Each visible test's name and whether it was skipped, as "name: ran" or
+/// "name: skipped". Names are trimmed, since a test marked with `.only` in a
+/// Flutter runner is declared inside a group with an empty name.
+List<String> _ranOrSkipped(List<Map<String, dynamic>> events) {
+  final names = <int, String>{
+    for (final event in events)
+      if (event['type'] == 'testStart')
+        (event['test'] as Map)['id'] as int:
+            ((event['test'] as Map)['name'] as String)
+                .replaceAll(RegExp(r'\s+'), ' ')
+                .trim(),
+  };
+  return [
+    for (final event in events)
+      if (event['type'] == 'testDone' && event['hidden'] != true)
+        '${names[event['testID']]}: '
+            '${event['skipped'] == true ? 'skipped' : 'ran'}',
+  ];
+}
+
+/// What every `*_runner_only.dart` fixture should produce.
+const _onlyExpected = [
+  '1 not marked: skipped',
+  '2₁ marked with examples: ran',
+  '2₂ marked with examples: ran',
+  'a group 3 marked in a group: ran',
+  'a group 4 not marked in a group: skipped',
+];

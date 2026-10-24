@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:test/test.dart' as test_package show group;
 
 import '../core.dart';
 
@@ -34,6 +35,16 @@ extension FlutterTestCode<C> on BddCodeable<C> {
 }
 
 void _testDelegate(TestInvocation invocation) {
+  if (!invocation.only) return _declareTest(invocation);
+
+  // flutter_test's test() has no `solo`, so a test marked with `.only` goes
+  // in a solo group. Only set when the user marks a test with `.only`, which
+  // itself warns.
+  // ignore: invalid_use_of_do_not_submit_member
+  test_package.group('', () => _declareTest(invocation), solo: true);
+}
+
+void _declareTest(TestInvocation invocation) {
   test(
     invocation.description,
     () async {

@@ -17,6 +17,7 @@ class TestInvocation {
     required this.body,
     this.timeout,
     this.skip,
+    this.only = false,
     this.tags,
     this.onPlatform,
     this.retry,
@@ -28,6 +29,11 @@ class TestInvocation {
   final Future<void> Function() body;
   final Timeout? timeout;
   final bool? skip;
+
+  /// When true, only this test, and the other tests marked with `only`, run
+  /// in this test file. Set by `BddFramework.only`.
+  final bool only;
+
   final dynamic tags;
   final Map<String, dynamic>? onPlatform;
   final int? retry;
@@ -230,6 +236,7 @@ class BddRunner {
             ctx = transformContext(ctx),
         timeout: bdd._timeout != null ? Timeout(bdd._timeout!) : Timeout.none,
         skip: bdd._skip,
+        only: bdd._only,
         tags: bdd._config?.tags,
         onPlatform: bdd._config?.onPlatform,
         retry: totalRetries,

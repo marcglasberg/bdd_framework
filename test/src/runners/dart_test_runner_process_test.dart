@@ -75,6 +75,15 @@ void main() {
           'fixture reporter completed',
         ]));
   }, timeout: const Timeout(Duration(minutes: 2)));
+
+  test('.only runs only the marked tests, and skips the others', () async {
+    final result = await _runFixture('dart_runner_only.dart');
+    final events = _events(result);
+
+    expect(result.exitCode, 0, reason: '${result.stdout}\n${result.stderr}');
+    expect(_ranOrSkipped(events), _onlyExpected);
+    expect(result.stdout, isNot(contains('unexpected run')));
+  }, timeout: const Timeout(Duration(minutes: 2)));
 }
 
 Future<ProcessResult> _runFixture(String name) async {
@@ -99,6 +108,8 @@ Future<ProcessResult> _runFixture(String name) async {
       'test/fixtures/$name'
     ],
     environment: {'DART_SUPPRESS_ANALYTICS': 'true'},
+    stdoutEncoding: utf8,
+    stderrEncoding: utf8,
   );
 }
 
@@ -120,3 +131,32 @@ List<Map<String, dynamic>> _events(ProcessResult result) => const LineSplitter()
     .where((line) => line.trimLeft().startsWith('{'))
     .map((line) => jsonDecode(line) as Map<String, dynamic>)
     .toList();
+
+/// Each visible test's name and whether it was skipped, as "name: ran" or
+/// "name: skipped". Names are trimmed, since a test marked with `.only` in a
+/// Flutter runner is declared inside a group with an empty name.
+List<String> _ranOrSkipped(List<Map<String, dynamic>> events) {
+  final names = <int, String>{
+    for (final event in events)
+      if (event['type'] == 'testStart')
+        (event['test'] as Map)['id'] as int:
+            ((event['test'] as Map)['name'] as String)
+                .replaceAll(RegExp(r'\s+'), ' ')
+                .trim(),
+  };
+  return [
+    for (final event in events)
+      if (event['type'] == 'testDone' && event['hidden'] != true)
+        '${names[event['testID']]}: '
+            '${event['skipped'] == true ? 'skipped' : 'ran'}',
+  ];
+}
+
+/// What every `*_runner_only.dart` fixture should produce.
+const _onlyExpected = [
+  '1 not marked: skipped',
+  '2₁ marked with examples: ran',
+  '2₂ marked with examples: ran',
+  'a group 3 marked in a group: ran',
+  'a group 4 not marked in a group: skipped',
+];

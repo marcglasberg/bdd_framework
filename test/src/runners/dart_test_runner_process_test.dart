@@ -76,6 +76,52 @@ void main() {
         ]));
   }, timeout: const Timeout(Duration(minutes: 2)));
 
+  test('MessagesReporter writes the results of a real run', () async {
+    final directory = await Directory.systemTemp.createTemp('bdd-messages-');
+    addTearDown(() => directory.delete(recursive: true));
+    final path = '${directory.path}/messages.ndjson';
+
+    final result = await _runFixture('dart_runner_messages.dart',
+        environment: {'BDD_MESSAGES_PATH': path});
+    expect(result.stdout, contains('Cucumber Messages saved in $path'));
+
+    final envelopes = File(path)
+        .readAsLinesSync()
+        .map((line) => jsonDecode(line) as Map<String, dynamic>)
+        .toList();
+    Iterable<Map<String, dynamic>> all(String type) => envelopes
+        .where((envelope) => envelope.containsKey(type))
+        .map((envelope) => envelope[type] as Map<String, dynamic>);
+
+    final pickleNames = {
+      for (final pickle in all('pickle')) pickle['id']: pickle['name'],
+    };
+    final pickleOfTestCase = {
+      for (final testCase in all('testCase'))
+        testCase['id']: pickleNames[testCase['pickleId']],
+    };
+    final statuses = <String, List<String>>{};
+    final testCaseOfStarted = <Object?, Object?>{};
+    for (final started in all('testCaseStarted')) {
+      testCaseOfStarted[started['id']] = started['testCaseId'];
+    }
+    for (final finished in all('testStepFinished')) {
+      final name = pickleOfTestCase[
+          testCaseOfStarted[finished['testCaseStartedId']]] as String;
+      final result = finished['testStepResult'] as Map<String, dynamic>;
+      (statuses[name] ??= []).add(result['status'] as String);
+    }
+
+    expect(statuses, {
+      'Passing': ['PASSED', 'PASSED', 'PASSED', 'PASSED'],
+      'Failing': ['PASSED', 'FAILED', 'SKIPPED', 'SKIPPED'],
+      'Outline 1': ['PASSED', 'PASSED', 'PASSED', 'PASSED'],
+      'Outline 1000': ['PASSED', 'PASSED', 'PASSED', 'FAILED'],
+      'Skipped': ['SKIPPED', 'SKIPPED', 'SKIPPED'],
+    });
+    expect(all('testRunFinished').single['success'], isFalse);
+  }, timeout: const Timeout(Duration(minutes: 2)));
+
   test('.only runs only the marked tests, and skips the others', () async {
     final result = await _runFixture('dart_runner_only.dart');
     final events = _events(result);
@@ -86,7 +132,10 @@ void main() {
   }, timeout: const Timeout(Duration(minutes: 2)));
 }
 
-Future<ProcessResult> _runFixture(String name) async {
+Future<ProcessResult> _runFixture(
+  String name, {
+  Map<String, String> environment = const {},
+}) async {
   final configFile = File('.dart_tool/package_config.json').absolute;
   final config =
       jsonDecode(await configFile.readAsString()) as Map<String, dynamic>;
@@ -107,7 +156,7 @@ Future<ProcessResult> _runFixture(String name) async {
       '--concurrency=1',
       'test/fixtures/$name'
     ],
-    environment: {'DART_SUPPRESS_ANALYTICS': 'true'},
+    environment: {'DART_SUPPRESS_ANALYTICS': 'true', ...environment},
     stdoutEncoding: utf8,
     stderrEncoding: utf8,
   );

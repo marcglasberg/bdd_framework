@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import '../core.dart';
+import 'gherkin_source.dart';
 
 class FeatureFileReporter extends BddReporter {
   //
@@ -67,16 +68,7 @@ class FeatureFileReporter extends BddReporter {
 
         stdout.write("Generating $file. ");
         sink = file.openWrite();
-        sink.write(feature);
-
-        if (feature.backgroundFramework != null) {
-          sink.write('\n');
-          sink.write(feature.background.toString());
-        }
-
-        for (var i = 0; i < feature.testResults.length; i++) {
-          _writeScenario(sink, feature.testResults[i]);
-        }
+        sink.write(gherkinSource(feature));
 
         stdout.writeln("Done!");
       }
@@ -94,12 +86,4 @@ class FeatureFileReporter extends BddReporter {
   }
 
   Future<void> _finish() async => stdout.writeln("Finished.");
-
-  void _writeScenario(IOSink sink, TestResult test) async {
-    sink.write('\n');
-    test.terms.forEach((term) {
-      sink.write(term.toString());
-      sink.write('\n');
-    });
-  }
 }

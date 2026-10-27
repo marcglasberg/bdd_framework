@@ -208,6 +208,9 @@ void main() {
       expect(result.message, startsWith('Bad state: the failure\n'));
       expect(result.exception!.type, 'StateError');
       expect(result.exception!.message, 'Bad state: the failure');
+      // Tools like the HTML formatter show only the stack trace, when there
+      // is one, so it must start with the error.
+      expect(result.exception!.stackTrace, result.message);
       expect(result.exception!.stackTrace, contains('messages_reporter_test'));
       expect(report.single((e) => e.testRunFinished).success, isFalse);
     });

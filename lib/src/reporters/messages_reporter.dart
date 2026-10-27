@@ -465,7 +465,9 @@ class _MessagesBuilder {
               : messages.Exception(
                   type: error.runtimeType.toString(),
                   message: error.toString(),
-                  stackTrace: outcome.stackTrace?.toString(),
+                  // Like in other Cucumber implementations, the stack trace
+                  // starts with the error, since tools may show only this.
+                  stackTrace: outcome.message,
                 ),
         ),
       ),

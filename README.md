@@ -970,7 +970,7 @@ the test results. You can create any reporters want by extending the `BddReporte
 example, you could create an `HtmlReporter()` to output your tests as HTML and then add them to your
 internal company's website.
 
-The **BDD Framework** package comes out of the box with 2 reporters:
+The **BDD Framework** package comes out of the box with 3 reporters:
 
 * `ConsoleReporter()` prints the results to the console. Under the IntelliJ IDE for Windows
   the output will have color. Note colors don't work under the IntelliJ for Mac
@@ -996,6 +996,49 @@ The **BDD Framework** package comes out of the box with 2 reporters:
       Cucumber for Jira</a> to show your feature files inside of Jira. Each time you run the tests
       and create the feature files, just commit them to your repo. Cucumber for Jira will read
       those files and present them well formatted for you.
+
+<p>
+
+* `MessagesReporter()` writes the results as
+  <a href='https://github.com/cucumber/messages'>Cucumber Messages</a>, into an NDJSON file
+  (one JSON message per line). While the feature files describe your BDDs, this file also records
+  how they ran: which steps passed, failed or were skipped, how long each step took, and the
+  errors. Tools that read Cucumber Messages can use it. For example,
+  <a href='https://github.com/cucumber/html-formatter'>Cucumber's HTML formatter</a> turns it into
+  an HTML report.
+    * The default is to save the file as `./gen_messages/messages.ndjson`. Use the `path`
+      parameter to choose another file: `MessagesReporter(path: './reports/messages.ndjson')`.
+    * The file contains the same Gherkin the `FeatureFileReporter` writes, so the results are
+      shown next to your scenarios.
+    * The code you add to a step with `.code()` is that step's code: the step fails if its code
+      throws, and its duration is how long the code took. The steps after a failing step are
+      skipped. A step without code passes, unless a step before it failed.
+    * The callback you give to `.run()` belongs to no step, so it's reported as an `After` hook
+      called `run() callback`. Cucumber tools usually hide hooks that pass, but a failing hook
+      fails the scenario and shows the error. So, to see which step failed, put the step's code
+      in `.code()`.
+    * Each `Examples` row is a separate test case. Skipped BDDs, and the ones that didn't run
+      because of `.only`, have all their steps skipped.
+
+  To turn the file into an HTML report, you can use Cucumber's HTML formatter for JavaScript.
+  For example, after `npm install @cucumber/html-formatter @cucumber/message-streams`, create a
+  `render.mjs` file:
+
+  ```js
+  import fs from 'node:fs'
+  import { pipeline } from 'node:stream/promises'
+  import { CucumberHtmlStream } from '@cucumber/html-formatter'
+  import { NdjsonToMessageStream } from '@cucumber/message-streams'
+
+  await pipeline(
+    fs.createReadStream('gen_messages/messages.ndjson', 'utf-8'),
+    new NdjsonToMessageStream(),
+    new CucumberHtmlStream(),
+    fs.createWriteStream('report.html', 'utf-8'),
+  )
+  ```
+
+  And run it with `node render.mjs`.
 
 <br>
 

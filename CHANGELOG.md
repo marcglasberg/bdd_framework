@@ -2,6 +2,26 @@ Sponsored by [MyText.ai](https://mytext.ai)
 
 [![](https://raw.githubusercontent.com/marcglasberg/bdd_framework/master/example/SponsoredByMyTextAi.png)](https://mytext.ai)
 
+## Unreleased
+
+* `MessagesReporter()` writes the results as
+  [Cucumber Messages](https://github.com/cucumber/messages), into an NDJSON
+  file. It has the Gherkin of each feature, and the result of each run of
+  each scenario: which steps passed, failed or were skipped, how long each step
+  took, and the errors. Tools that read Cucumber Messages can use it, like
+  [Cucumber's HTML formatter](https://github.com/cucumber/html-formatter),
+  which turns it into an HTML report. See the README for how to use it
+  ([#17](https://github.com/marcglasberg/bdd_framework/issues/17)).
+
+* Each run of a BDD is now recorded, with the result, duration and error of
+  each code block that ran. Reporters can read it from
+  `TestResult.executions` (or `BddFramework.executions`). See `BddExecution`.
+
+* `BddTerm.isNote` tells if a term is a note, added with `.note()`.
+
+* Requires Dart 3.8 (Flutter 3.32), since `cucumber_gherkin` and
+  `cucumber_messages` are now dependencies.
+
 ## 5.1.0
 
 * `Bdd(feature).only` runs only that BDD while you work on it, like `test.only`

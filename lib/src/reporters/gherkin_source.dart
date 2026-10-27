@@ -4,21 +4,30 @@ import '../core.dart';
 ///
 /// This is the content of the `.feature` file the [FeatureFileReporter]
 /// writes, and the source the `MessagesReporter` reports.
-String gherkinSource(BddFeature feature) {
-  final result = StringBuffer()..write(feature);
+String gherkinSource(BddFeature feature, {int? maxLength}) {
+  final result = StringBuffer();
+  void append(Object value) {
+    final text = value.toString();
+    if (maxLength != null && result.length + text.length > maxLength) {
+      throw StateError(
+        'Gherkin source exceeded the $maxLength character limit.',
+      );
+    }
+    result.write(text);
+  }
+
+  append(feature);
 
   if (feature.backgroundFramework != null) {
-    result
-      ..write('\n')
-      ..write(feature.background.toString());
+    append('\n');
+    append(feature.background.toString());
   }
 
   for (final test in feature.testResults) {
-    result.write('\n');
+    append('\n');
     for (final term in test.terms) {
-      result
-        ..write(term.toString())
-        ..write('\n');
+      append(term.toString());
+      append('\n');
     }
   }
 

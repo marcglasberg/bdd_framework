@@ -7,6 +7,11 @@ part of 'bdd_base.dart';
 /// A BDD with examples runs once per example row, and a BDD with retries may
 /// run more than once for the same row. Each of those runs is a separate
 /// [BddExecution]. A BDD that was skipped, or that never ran, has none.
+///
+/// These are observations of BDD code, not the final test runner outcome.
+/// Setup/teardown errors outside that code are not recorded, and a future may
+/// complete after the runner has already timed out the test. Use the runner's
+/// result, rather than [passed], to determine whether the whole test passed.
 class BddExecution {
   BddExecution._({
     required this.exampleIndex,
@@ -38,8 +43,8 @@ class BddExecution {
   Object? _error;
   StackTrace? _stackTrace;
 
-  /// How long the run took, or `null` if it didn't finish, for example because
-  /// the test timed out.
+  /// How long the BDD body took, or `null` while it has not finished.
+  /// It may finish after the surrounding test has already timed out.
   Duration? get duration => _duration;
 
   /// Whether the run finished, either passing or failing.
@@ -127,8 +132,8 @@ class BddCodeExecution {
   Object? _error;
   StackTrace? _stackTrace;
 
-  /// How long the code block took, or `null` if it didn't finish, for example
-  /// because the test timed out while it was running.
+  /// How long the code block took, or `null` while it has not finished.
+  /// It may finish after the surrounding test has already timed out.
   Duration? get duration => _duration;
 
   /// Whether the code block finished, either passing or failing.

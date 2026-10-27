@@ -4,6 +4,13 @@ Sponsored by [MyText.ai](https://mytext.ai)
 
 ## Unreleased
 
+* Messages reports explicitly mark the final runner outcome as unavailable, so failures
+  outside BDD bodies cannot be mistaken for a successful suite. Invalid/incomplete mappings
+  and export errors now throw instead of silently omitting tests or retaining stale output.
+  Report publication rejects links in output paths and uses a flushed temporary file and
+  rename. Examples use bounded, single-pass substitution without expanding inserted values.
+  See the README for limits, private-directory requirements and sensitive-artifact handling.
+
 * `MessagesReporter()` writes the results as
   [Cucumber Messages](https://github.com/cucumber/messages), into an NDJSON
   file. It has the Gherkin of each feature, and the result of each run of

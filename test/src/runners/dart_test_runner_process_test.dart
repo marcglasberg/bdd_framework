@@ -77,7 +77,8 @@ void main() {
   }, timeout: const Timeout(Duration(minutes: 2)));
 
   test('MessagesReporter writes the results of a real run', () async {
-    final directory = await Directory.systemTemp.createTemp('bdd-messages-');
+    final temporary = await Directory.systemTemp.createTemp('bdd-messages-');
+    final directory = Directory(await temporary.resolveSymbolicLinks());
     addTearDown(() => directory.delete(recursive: true));
     final path = '${directory.path}/messages.ndjson';
 

@@ -1,11 +1,12 @@
 import 'dart:io';
 
 import 'package:collection/collection.dart';
-import 'package:cucumber_gherkin/cucumber_gherkin.dart' as gherkin;
 import 'package:cucumber_messages/cucumber_messages.dart' as messages;
 
 import '../core.dart';
 import 'gherkin_source.dart';
+import 'messages_file.dart';
+import 'messages_gherkin.dart';
 
 /// Writes the results of the BDDs as
 /// [Cucumber Messages](https://github.com/cucumber/messages), in an NDJSON
@@ -47,6 +48,17 @@ import 'gherkin_source.dart';
 ///
 /// * A BDD that was skipped, or that didn't run (for example, because of
 ///   `.only`), is reported with all its steps skipped.
+///
+/// This is a snapshot of BDD bodies, not the final result of the test runner.
+/// It cannot observe all setup/teardown failures or a timeout followed by a
+/// late completion. `testRunFinished` therefore has `success: false` and an
+/// explicit incomplete-result message even when all recorded steps passed.
+/// Use the test runner's exit status to decide whether the suite passed.
+///
+/// Reports contain scenario data, errors and stack traces. Store them in a
+/// trusted private directory, redact sensitive test data before recording it,
+/// and review them before sharing. See the README for the output security
+/// policy and size limits.
 class MessagesReporter extends BddReporter {
   /// Creates a reporter that writes the Cucumber Messages to the file at
   /// [path]. The directories are created if needed.
@@ -57,19 +69,11 @@ class MessagesReporter extends BddReporter {
 
   @override
   Future<void> report() async {
-    try {
-      final ndjson = StringBuffer();
-      for (final envelope in envelopes()) {
-        ndjson.writeln(messages.envelopeToJsonString(envelope));
-      }
-      final file = File(path);
-      await file.parent.create(recursive: true);
-      await file.writeAsString(ndjson.toString());
-      stdout.writeln('Cucumber Messages saved in $path');
-    } catch (error) {
-      stdout.writeln('Failed! Could not save Cucumber Messages to $path: '
-          '$error');
-    }
+    await writeMessagesFile(
+      path,
+      () => envelopes().map(messages.envelopeToJsonString),
+    );
+    stdout.writeln('Cucumber Messages saved in $path');
   }
 
   /// The Cucumber Messages of all the BDDs this reporter got, in the order
@@ -102,18 +106,18 @@ class _PlannedStep {
 
 /// One test case: a BDD, or one example row of a BDD.
 class _TestCasePlan {
-  _TestCasePlan(this.bdd, this.exampleIndex, this.pickleId, this.steps);
+  _TestCasePlan(this.pickleId, this.steps, this.executions)
+      : lastAttempt = executions.fold<int>(
+          0,
+          (latest, run) => run.attempt > latest ? run.attempt : latest,
+        );
 
-  final BddFramework bdd;
-  final int? exampleIndex;
   final String pickleId;
   final List<_PlannedStep> steps;
+  final List<BddExecution> executions;
+  final int lastAttempt;
 
   late final String testCaseId;
-
-  List<BddExecution> get executions => bdd.executions
-      .where((execution) => execution.exampleIndex == exampleIndex)
-      .toList();
 }
 
 /// The result of one step in one run.
@@ -144,11 +148,17 @@ class _MessagesBuilder {
   final String Function(String title) fileNameOf;
 
   final List<messages.Envelope> _envelopes = [];
+  final GherkinMessageBudget _gherkinBudget = GherkinMessageBudget();
   int _nextId = 0;
 
   String _id() => '${_nextId++}';
 
-  void _add(messages.Envelope envelope) => _envelopes.add(envelope);
+  void _add(messages.Envelope envelope) {
+    if (_envelopes.length >= 100000) {
+      throw StateError('Cucumber Messages exceeded the 100000 envelope limit.');
+    }
+    _envelopes.add(envelope);
+  }
 
   List<messages.Envelope> build() {
     _add(messages.Envelope(meta: _meta()));
@@ -171,10 +181,16 @@ class _MessagesBuilder {
       ));
     }
 
-    final runs = [
-      for (final plan in plans)
-        for (final execution in plan.executions) (plan, execution),
-    ]..sort((a, b) => a.$2.startedAt.compareTo(b.$2.startedAt));
+    final runs = <(_TestCasePlan, BddExecution)>[];
+    for (final plan in plans) {
+      for (final execution in plan.executions) {
+        if (runs.length >= 10000) {
+          throw StateError('Cucumber Messages exceeded the 10000 run limit.');
+        }
+        runs.add((plan, execution));
+      }
+    }
+    runs.sort((a, b) => a.$2.startedAt.compareTo(b.$2.startedAt));
 
     final testRunStartedId = _id();
     var clock = runs.isEmpty ? DateTime.now() : runs.first.$2.startedAt;
@@ -210,14 +226,13 @@ class _MessagesBuilder {
       ));
     }
 
-    var success = true;
+    var observedFailure = false;
 
     for (final (plan, execution) in runs) {
-      final willBeRetried = plan.executions
-          .any((other) => other.attempt > execution.attempt);
+      final willBeRetried = plan.lastAttempt > execution.attempt;
       final (finishedAt, failed) =
           _reportRun(plan, execution, willBeRetried: willBeRetried);
-      if (failed && !willBeRetried) success = false;
+      if (failed && !willBeRetried) observedFailure = true;
       if (finishedAt.isAfter(clock)) clock = finishedAt;
     }
 
@@ -228,7 +243,14 @@ class _MessagesBuilder {
 
     _add(messages.Envelope(
       testRunFinished: messages.TestRunFinished(
-        success: success,
+        // The public test APIs cannot establish the final suite outcome here:
+        // hooks may fail outside the BDD, including after this report is made.
+        // The protocol has no unknown boolean, so never claim global success.
+        success: false,
+        message: 'Incomplete: final runner result unavailable. '
+            '${observedFailure ? 'A recorded BDD body failed or did not finish. ' : ''}'
+            'This report covers BDD bodies only; setup, teardown and timeout '
+            'outcomes must be checked in the test runner result.',
         timestamp: messages.dateTimeToTimestamp(clock),
         testRunStartedId: testRunStartedId,
       ),
@@ -256,22 +278,22 @@ class _MessagesBuilder {
   /// its test cases.
   List<_TestCasePlan> _planFeature(BddFeature feature) {
     final uri = '${fileNameOf(feature.title)}.feature';
-    final envelopes = gherkin.generateMessages(
-      gherkinSource(feature),
-      uri,
-      gherkin.GherkinOptions(idGenerator: _id),
-    );
-    _envelopes.addAll(envelopes);
+    final source = gherkinSource(feature, maxLength: 1024 * 1024);
+    final envelopes = safeGherkinMessages(source, uri, _id,
+        budget: _gherkinBudget);
+    for (final envelope in envelopes) {
+      _add(envelope);
+    }
 
     final errors = [
       for (final envelope in envelopes)
         if (envelope.parseError != null) envelope.parseError!.message,
     ];
     if (errors.isNotEmpty) {
-      stdout.writeln('The results of feature "${feature.title}" are not in '
-          'the Cucumber Messages, because its Gherkin is invalid: '
-          '${errors.join('; ')}');
-      return const [];
+      throw FormatException(
+        'Cannot report feature "${feature.title}": '
+        'invalid Gherkin (${errors.join('; ')}).',
+      );
     }
 
     final document = envelopes
@@ -280,6 +302,11 @@ class _MessagesBuilder {
         .single;
     final pickles =
         envelopes.map((envelope) => envelope.pickle).nonNulls.toList();
+    // The BDD DSL has no Rule. A Rule introduced through description text can
+    // otherwise hide real scenarios from the root-only positional mapping.
+    if (document.feature?.children.any((child) => child.rule != null) ?? false) {
+      throw const FormatException('Cannot map Gherkin Rules to BDD scenarios.');
+    }
     final scenarios = [
       for (final child in document.feature?.children ?? <messages.FeatureChild>[])
         if (child.scenario != null) child.scenario!,
@@ -287,30 +314,50 @@ class _MessagesBuilder {
     final bdds = feature.bdds;
 
     if (scenarios.length != bdds.length) {
-      stdout.writeln('The results of feature "${feature.title}" are not in '
-          'the Cucumber Messages: it has ${bdds.length} BDDs, but '
-          '${scenarios.length} scenarios.');
-      return const [];
+      throw FormatException(
+        'Cannot report feature "${feature.title}": '
+        '${bdds.length} BDDs do not match ${scenarios.length} scenarios.',
+      );
     }
 
     final plans = <_TestCasePlan>[];
+    final mappedPickles = <String>{};
     for (var i = 0; i < bdds.length; i++) {
       final bdd = bdds[i];
       final scenario = scenarios[i];
+      final executionsByExample = <int?, List<BddExecution>>{};
+      for (final execution in bdd.executions) {
+        (executionsByExample[execution.exampleIndex] ??= []).add(execution);
+      }
       final rowIds = [
         for (final examples in scenario.examples)
           for (final row in examples.tableBody) row.id,
       ];
 
-      for (final pickle
-          in pickles.where((pickle) => pickle.astNodeIds.first == scenario.id)) {
+      final scenarioPickles = pickles
+          .where((pickle) => pickle.astNodeIds.first == scenario.id)
+          .toList();
+      final exampleCount = bdd.numberOfExamples();
+      if (scenarioPickles.length != (exampleCount == 0 ? 1 : exampleCount) ||
+          rowIds.length != exampleCount) {
+        throw FormatException(
+          'Cannot report scenario "${scenario.name}": '
+          'its Gherkin examples do not match the BDD examples.',
+        );
+      }
+      final mappedExamples = <int?>{};
+      for (final pickle in scenarioPickles) {
+        if (!mappedPickles.add(pickle.id)) {
+          throw const FormatException('A Gherkin test case was mapped twice.');
+        }
         final steps = _stepsOf(feature.backgroundFramework, bdd);
         final gherkinSteps = steps.where((step) => !step.isHook).toList();
         if (gherkinSteps.length != pickle.steps.length) {
-          stdout.writeln('The results of scenario "${scenario.name}" are not '
-              'in the Cucumber Messages: it has ${gherkinSteps.length} steps, '
-              'but its Gherkin has ${pickle.steps.length}.');
-          continue;
+          throw FormatException(
+            'Cannot report scenario "${scenario.name}": '
+            '${gherkinSteps.length} BDD steps do not match '
+            '${pickle.steps.length} Gherkin steps.',
+          );
         }
         for (var s = 0; s < gherkinSteps.length; s++) {
           gherkinSteps[s].pickleStepId = pickle.steps[s].id;
@@ -319,8 +366,29 @@ class _MessagesBuilder {
         final exampleIndex = (pickle.astNodeIds.length > 1)
             ? rowIds.indexOf(pickle.astNodeIds[1])
             : null;
-        plans.add(_TestCasePlan(bdd, exampleIndex, pickle.id, steps));
+        if (exampleIndex == -1 || !mappedExamples.add(exampleIndex)) {
+          throw FormatException(
+            'Cannot report scenario "${scenario.name}": '
+            'ambiguous example mapping.',
+          );
+        }
+        plans.add(
+          _TestCasePlan(
+            pickle.id,
+            steps,
+            executionsByExample.remove(exampleIndex) ?? const [],
+          ),
+        );
       }
+      if (executionsByExample.isNotEmpty) {
+        throw FormatException(
+          'Cannot report scenario "${scenario.name}": '
+          'some recorded executions have no Gherkin test case.',
+        );
+      }
+    }
+    if (mappedPickles.length != pickles.length) {
+      throw const FormatException('Some Gherkin test cases have no BDD mapping.');
     }
     return plans;
   }

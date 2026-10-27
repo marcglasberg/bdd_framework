@@ -1019,9 +1019,48 @@ The **BDD Framework** package comes out of the box with 3 reporters:
       in `.code()`.
     * Each `Examples` row is a separate test case. Skipped BDDs, and the ones that didn't run
       because of `.only`, have all their steps skipped.
+    * These are observations of BDD bodies, **not the final test runner result**. Setup and
+      teardown may fail outside those bodies, and a timed-out body may finish later. The
+      Cucumber protocol has no unknown value for its required `success` boolean. Therefore
+      `testRunFinished.success` is always `false`, with a message starting
+      `Incomplete: final runner result unavailable`, even when all recorded steps passed.
+      Per-step results and retries are still shown. Use the runner's exit code to approve a
+      CI run; do not use this report as a suite-success signal.
+    * Invalid Gherkin, mismatched scenarios/steps/examples, serialization errors and output
+      failures make `report()` throw. `reportAll()` propagates that failure through its
+      teardown. No BDD is silently dropped. An existing regular output file must be removed
+      before generation begins. If that removal fails (for example, due to permissions),
+      export aborts; never consume or upload any file left at the path after an error.
+      Successful output is flushed to a temporary file in the same parent directory and
+      renamed into place; a partially written report is never intentionally published.
+    * Put the output in a **private, trusted directory** that no other user/process can
+      modify during export. Existing links in the destination or its parent path are
+      rejected, and a detected replacement destination is not overwritten. Portable Dart filesystem
+      APIs cannot eliminate races against an attacker concurrently changing directories.
+      If a trusted system directory uses an alias such as macOS `/var`, resolve that
+      trusted directory with `Directory.resolveSymbolicLinks()` before choosing the file.
+      Use a separate output path for each test process; shared paths are not a coordination
+      mechanism. Do not upload a report after a test/export command fails.
+    * Treat both NDJSON and derived HTML as sensitive test artifacts. They include scenario
+      text, example/table values, error messages, stack traces and platform versions.
+      Do not put real credentials or personal data in test descriptions or thrown errors;
+      replace sensitive values before they enter the BDD. There is no automatic secret
+      detector or redaction guarantee. Limit access and retention, and inspect/redact the
+      resulting artifact before sharing it.
+    * Example substitution reads placeholders from the original text once. For example,
+      `<a>` with `a = '<b><b>'` remains the literal `<b><b>` even if a `b` column exists.
+      Input and output limits reject excessive reports rather than expanding them without
+      bounds: 1 Mi character per feature source, 16 Mi source and expanded characters
+      combined per report, 256 columns per Examples table,
+      100,000 compiled cases/steps/table rows/cells/tags combined per report,
+      10,000 recorded runs and 100,000 envelopes per report, and 64 MiB of serialized UTF-8.
+      Errors are propagated when a limit is exceeded. Split very large suites into separate
+      report files instead of depending on unlimited in-memory generation. These limits
+      bound report input/output; they do not cap arbitrary test callbacks or custom
+      `toString()`/table formatting that runs before the reporter receives the text.
 
   To turn the file into an HTML report, you can use Cucumber's HTML formatter for JavaScript.
-  For example, after `npm install @cucumber/html-formatter @cucumber/message-streams`, create a
+  For example, after `npm install --save-exact @cucumber/html-formatter @cucumber/message-streams`, create a
   `render.mjs` file:
 
   ```js
@@ -1039,6 +1078,22 @@ The **BDD Framework** package comes out of the box with 3 reporters:
   ```
 
   And run it with `node render.mjs`.
+
+  Keep the resolved npm versions and lockfile under review, and use `npm ci` for repeatable
+  installs. Review the formatter's security updates. Opening an HTML report may load remote
+  resources embedded in descriptions, such as Markdown images. Render untrusted content
+  offline or with network access restricted, and avoid embedding reports in a privileged
+  application origin. The Dart reporter does not run the formatter or provide a network
+  upload/telemetry service. A caller-selected network filesystem path can still write to
+  that filesystem remotely.
+
+  Execution records are collected by the shared runner even without `MessagesReporter`:
+  one record per attempt and code block, including timestamps, durations, errors and stacks.
+  They remain local and available through `TestResult.executions`; no file or network output
+  is added by collecting them. Recording uses memory proportional to attempts and code blocks.
+  The Cucumber dependencies and Dart 3.8 / Flutter 3.32 package requirements also apply to
+  consumers who do not enable this reporter. Imports alone cannot make Pub dependencies
+  optional; separating the reporter into an additional package would be a separate change.
 
 <br>
 

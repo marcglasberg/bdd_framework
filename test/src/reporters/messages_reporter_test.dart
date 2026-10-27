@@ -71,7 +71,10 @@ void main() {
         'Adding an item #0: an empty cart=PASSED, I add an apple=PASSED, '
             'the cart has 1 item=PASSED, hook=PASSED',
       ]);
-      expect(report.single((e) => e.testRunFinished).success, isTrue);
+      final finished = report.single((e) => e.testRunFinished);
+      expect(finished.success, isFalse);
+      expect(finished.message, contains('Incomplete'));
+      expect(finished.message, contains('final runner result unavailable'));
       report.expectConsistent();
     });
 
@@ -379,7 +382,7 @@ void main() {
       );
       final started = report.all((e) => e.testCaseStarted).toList();
       expect(started[0].testCaseId, started[1].testCaseId);
-      expect(report.single((e) => e.testRunFinished).success, isTrue);
+      expect(report.single((e) => e.testRunFinished).success, isFalse);
     });
 
     test('a skipped BDD has all its steps skipped', () async {
@@ -395,7 +398,7 @@ void main() {
         'Ran #0: c=PASSED, hook=PASSED',
         'Skipped #0: a=SKIPPED, b=SKIPPED, hook=SKIPPED',
       ]);
-      expect(report.single((e) => e.testRunFinished).success, isTrue);
+      expect(report.single((e) => e.testRunFinished).success, isFalse);
       report.expectConsistent();
     });
 
@@ -418,30 +421,31 @@ void main() {
   });
 
   group('BDDs that are not Gherkin scenarios', () {
-    test('a BDD without a scenario is left out of the results, and says so',
+    test('a failed BDD without a scenario rejects an incomplete report',
         () async {
       // Without a scenario, Gherkin reads the steps as the feature description.
       final feature = BddFeature('No scenario');
       final bdd = Bdd(feature).given('a step').then('another').bdd;
       final other = Bdd(BddFeature('Other')).scenario('Fine').then('ok').bdd;
-      await _run(bdd);
+      await _run(bdd, (_) => throw StateError('must not disappear'));
       await _run(other);
 
-      late List<messages.Envelope> envelopes;
-      final output =
-          await captureStdout(() async => envelopes = reporter.envelopes());
-      final report = _Report(envelopes);
-
-      expect(output, contains('"No scenario"'));
-      expect(report.all((e) => e.source), hasLength(2));
-      expect(report.results, ['Fine #0: ok=PASSED, hook=PASSED']);
-      report.expectConsistent();
+      expect(bdd.executions.single.passed, isFalse);
+      expect(
+        reporter.envelopes,
+        throwsA(isA<FormatException>().having(
+          (e) => e.message,
+          'message',
+          contains('BDDs do not match'),
+        )),
+      );
     });
   });
 
   group('report()', () {
     test('writes one message per line, creating the directories', () async {
-      final directory = await Directory.systemTemp.createTemp('bdd-messages-');
+      final temporary = await Directory.systemTemp.createTemp('bdd-messages-');
+      final directory = Directory(await temporary.resolveSymbolicLinks());
       addTearDown(() => directory.delete(recursive: true));
       final path = '${directory.path}/nested/dir/messages.ndjson';
       reporter = MessagesReporter(path: path);
@@ -463,17 +467,45 @@ void main() {
       ]);
     });
 
-    test('says so when it cannot write the file', () async {
-      final directory = await Directory.systemTemp.createTemp('bdd-messages-');
+    test('propagates failure when it cannot write the file', () async {
+      final temporary = await Directory.systemTemp.createTemp('bdd-messages-');
+      final directory = Directory(await temporary.resolveSymbolicLinks());
       addTearDown(() => directory.delete(recursive: true));
       // A directory can't be opened as a file.
       reporter = MessagesReporter(path: directory.path);
       BddReporter.set(reporter);
 
-      final output = await captureStdout(reporter.report);
-      expect(output, contains('Failed! Could not save Cucumber Messages'));
+      await expectLater(reporter.report(), throwsA(isA<FileSystemException>()));
+    });
+
+    test('a serialization failure removes the previous report and propagates',
+        () async {
+      final temporary = await Directory.systemTemp.createTemp('bdd-messages-');
+      final directory = Directory(await temporary.resolveSymbolicLinks());
+      addTearDown(() => directory.delete(recursive: true));
+      final file = File('${directory.path}/messages.ndjson');
+      file.writeAsStringSync('old report');
+      reporter = MessagesReporter(path: file.path);
+      BddReporter.set(reporter);
+      final error = _UnprintableError();
+      await _run(
+        Bdd(BddFeature('Serialization')).scenario('Failed').then('x').bdd,
+        (_) => throw error,
+      );
+      error.throwOnPrint = true;
+      await expectLater(reporter.report(), throwsStateError);
+      expect(file.existsSync(), isFalse);
     });
   });
+}
+
+class _UnprintableError extends Error {
+  bool throwOnPrint = false;
+  @override
+  String toString() {
+    if (throwOnPrint) throw StateError('Cannot serialize this error');
+    return 'Synthetic test failure';
+  }
 }
 
 /// Runs [bdd] like `package:test` would, with [callback] as the `.run()`

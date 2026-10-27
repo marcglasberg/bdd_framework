@@ -517,6 +517,177 @@ void main() {
       });
     });
 
+    // ── Execution recording ─────────────────────────────────────────────
+
+    group('execution recording', () {
+      test('records each code block in run order, with its duration', () async {
+        final background = BddFeature('Recorded feature');
+        background.background
+            .given('a background')
+            .code((ctx) => Future.delayed(const Duration(milliseconds: 5)));
+
+        final bdd = Bdd(background)
+            .scenario('Recorded')
+            .given('G')
+            .code((ctx) async {
+              await Future.delayed(const Duration(milliseconds: 20));
+            })
+            .when('W')
+            .code((ctx) {})
+            .then('T')
+            .bdd;
+
+        final invocations = <TestInvocation>[];
+        runner.run(bdd, (ctx) {}, invocations.add, null);
+        await invocations.single.body();
+
+        final execution = bdd.executions.single;
+        expect(execution.exampleIndex, isNull);
+        expect(execution.attempt, 1);
+        expect(execution.isFinished, isTrue);
+        expect(execution.passed, isTrue);
+        expect(execution.error, isNull);
+
+        final backgroundCode = background.backgroundFramework!.codeTerms.single;
+        final codeTerms = bdd.codeTerms.toList();
+        expect(
+          execution.codeExecutions.map((code) => code.codeTerm),
+          [backgroundCode, codeTerms[0], codeTerms[1], null],
+        );
+        expect(execution.codeExecutions.every((code) => code.passed), isTrue);
+        expect(execution.resultOf(codeTerms[0])!.duration,
+            greaterThanOrEqualTo(const Duration(milliseconds: 20)));
+        expect(execution.callbackResults, hasLength(1));
+        expect(execution.duration,
+            greaterThanOrEqualTo(const Duration(milliseconds: 25)));
+        expect(
+          execution.startedAt.isAfter(
+              execution.codeExecutions.first.startedAt),
+          isFalse,
+        );
+      });
+
+      test('records the failing code block, and not the ones after it',
+          () async {
+        final failure = StateError('step failure');
+        final bdd = Bdd(feature)
+            .scenario('Failing')
+            .given('G')
+            .code((ctx) {})
+            .when('W')
+            .code((ctx) => throw failure)
+            .then('T')
+            .code((ctx) {})
+            .bdd;
+
+        final invocations = <TestInvocation>[];
+        runner.run(bdd, (ctx) {}, invocations.add, (error, stackTrace) {});
+        await invocations.single.body();
+
+        final execution = bdd.executions.single;
+        final codeTerms = bdd.codeTerms.toList();
+        expect(execution.passed, isFalse);
+        expect(execution.isFinished, isTrue);
+        expect(execution.error, same(failure));
+        expect(execution.stackTrace, isNotNull);
+        expect(execution.codeExecutions, hasLength(2));
+        expect(execution.resultOf(codeTerms[0])!.passed, isTrue);
+        expect(execution.resultOf(codeTerms[1])!.passed, isFalse);
+        expect(execution.resultOf(codeTerms[1])!.error, same(failure));
+        expect(execution.resultOf(codeTerms[2]), isNull);
+        expect(execution.callbackResults, isEmpty);
+      });
+
+      test('records asynchronous failures of the callback', () async {
+        final bdd = Bdd(feature).scenario('Async failure').then('T').bdd;
+
+        final invocations = <TestInvocation>[];
+        runner.run(bdd, (ctx) async {
+          await Future<void>.delayed(Duration.zero);
+          throw StateError('async failure');
+        }, invocations.add, (error, stackTrace) {});
+        await invocations.single.body();
+
+        final execution = bdd.executions.single;
+        expect(execution.passed, isFalse);
+        expect(execution.callbackResults.single.error, isA<StateError>());
+        expect(execution.callbackResults.single.isFinished, isTrue);
+      });
+
+      test('keeps failing synchronously when a sync step throws', () {
+        final bdd = Bdd(feature)
+            .scenario('Sync failure')
+            .given('G')
+            .code((ctx) => throw StateError('sync failure'))
+            .then('T')
+            .bdd;
+
+        // The delegate doesn't await the body: a sync failure is recorded
+        // before body() returns, like before executions were recorded.
+        runner.run(bdd, (ctx) {}, (invocation) => invocation.body(),
+            (error, stackTrace) {});
+
+        expect(bdd.passed, [false]);
+        expect(bdd.executions.single.passed, isFalse);
+      });
+
+      test('records one execution per example row, and one per attempt',
+          () async {
+        final bdd = Bdd(feature)
+            .scenario('Examples and retries')
+            .then('T')
+            .example(val('n', 1))
+            .example(val('n', 2))
+            .bdd;
+
+        var calls = 0;
+        final invocations = <TestInvocation>[];
+        runner.run(bdd, (ctx) {
+          calls++;
+          // The first run of the first row fails, and is retried.
+          if (calls == 1) throw StateError('flaky');
+        }, invocations.add, (error, stackTrace) {});
+
+        await invocations[0].body();
+        await invocations[0].body();
+        await invocations[1].body();
+
+        expect(
+          bdd.executions
+              .map((e) => '${e.exampleIndex}:${e.attempt}:${e.passed}'),
+          ['0:1:false', '0:2:true', '1:1:true'],
+        );
+        expect(TestResult(bdd).executions, bdd.executions);
+      });
+
+      test('a run that never finishes stays unfinished', () async {
+        final never = Completer<void>();
+        final bdd = Bdd(feature)
+            .scenario('Timeout')
+            .given('G')
+            .code((ctx) => never.future)
+            .then('T')
+            .bdd;
+
+        final invocations = <TestInvocation>[];
+        runner.run(bdd, (ctx) {}, invocations.add, null);
+        unawaited(invocations.single.body());
+        await Future<void>.delayed(Duration.zero);
+
+        final execution = bdd.executions.single;
+        expect(execution.isFinished, isFalse);
+        expect(execution.passed, isFalse);
+        expect(execution.duration, isNull);
+        expect(execution.codeExecutions.single.isFinished, isFalse);
+      });
+
+      test('a skipped BDD has no executions', () {
+        final bdd = Bdd(feature).scenario('Skipped').then('T').bdd..skip;
+        runner.run(bdd, (ctx) {}, (invocation) {}, null);
+        expect(bdd.executions, isEmpty);
+      });
+    });
+
     // ── Console output ──────────────────────────────────────────────────
 
     group('console output', () {

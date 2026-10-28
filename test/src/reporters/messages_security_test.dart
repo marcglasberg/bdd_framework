@@ -67,9 +67,7 @@ void main() {
           .toList();
       expect(encoded.every((line) => !line.contains('\n')), isTrue);
       final roundTrip = encoded.map(messages.parseEnvelopeJson).toList();
-      final finished = roundTrip.map((e) => e.testRunFinished).nonNulls.single;
-      expect(finished.success, isFalse);
-      expect(finished.message, contains('Incomplete'));
+      expect(roundTrip.map((e) => e.testRunFinished).nonNulls, isEmpty);
       final failed = roundTrip
           .map((e) => e.testStepFinished)
           .nonNulls

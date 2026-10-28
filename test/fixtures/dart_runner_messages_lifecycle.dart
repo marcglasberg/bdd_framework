@@ -10,11 +10,14 @@ void main() {
   final mode = Platform.environment['BDD_MESSAGES_CASE']!;
   if (!const {
     'passing',
+    'body-failure',
     'setup',
     'teardown',
     'timeout',
     'late-teardown-all',
+    'retry',
     'missing-scenario',
+    'abrupt-exit',
   }.contains(mode)) {
     throw ArgumentError('Unknown lifecycle fixture: $mode');
   }
@@ -31,13 +34,32 @@ void main() {
   final bdd = Bdd(BddFeature('Lifecycle: $mode'));
   if (mode == 'missing-scenario') {
     bdd.given('no scenario was declared').then('the body passes').run();
+  } else if (mode == 'retry') {
+    final scenario = bdd
+        .scenario('recovers on retry')
+        .then('synthetic check')
+        .bdd;
+    var attempts = 0;
+    // The public delegate interface supplies package:test's retry option.
+    BddRunner().run(
+      scenario,
+      (_) {
+        if (++attempts == 1)
+          throw StateError('synthetic first attempt failure');
+      },
+      (invocation) {
+        test(invocation.description, invocation.body, retry: 1);
+      },
+      null,
+      () => true,
+    );
   } else {
-    if (mode == 'timeout') {
-      bdd.timeout(const Duration(milliseconds: 30));
-    }
+    if (mode == 'timeout') bdd.timeout(const Duration(milliseconds: 30));
     bdd.scenario('body passes if it runs').then('synthetic check').run((
       _,
     ) async {
+      if (mode == 'abrupt-exit') exit(23);
+      if (mode == 'body-failure') throw StateError('synthetic body failure');
       if (mode == 'timeout') {
         await Future<void>.delayed(const Duration(milliseconds: 100));
       }
@@ -52,8 +74,7 @@ void main() {
     });
   }
   if (mode == 'late-teardown-all') {
-    // tearDownAll callbacks run in reverse registration order. This failure
-    // therefore happens after the reporter has written its result.
+    // Registered first so the failure occurs after the reporter's teardown.
     tearDownAll(() => throw StateError('synthetic late teardown-all failure'));
   }
   BddReporter.reportAll();

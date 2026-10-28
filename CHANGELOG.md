@@ -4,8 +4,12 @@ Sponsored by [MyText.ai](https://mytext.ai)
 
 ## Unreleased
 
-* Messages reports explicitly mark the final runner outcome as unavailable, so failures
-  outside BDD bodies cannot be mistaken for a successful suite. Invalid/incomplete mappings
+* Messages reports use two-stage publication: tests write a `.partial`, then the optional
+  `finalize_messages` command combines it with the runner's dedicated JSON log and actual
+  exit code. Completed reports have a truthful global success/failure result; interrupted
+  or unverifiable runs remain incomplete. Random run IDs bind the files, and partials are
+  consumed once. This finalization does not change other reporters or shared runners.
+  Invalid/incomplete mappings
   and export errors now throw instead of silently omitting tests or retaining stale output.
   Report publication rejects links in output paths and uses a flushed temporary file and
   rename. Examples use bounded, single-pass substitution without expanding inserted values.

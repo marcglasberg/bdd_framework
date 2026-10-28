@@ -76,7 +76,7 @@ void main() {
         ]));
   }, timeout: const Timeout(Duration(minutes: 2)));
 
-  test('MessagesReporter writes the results of a real run', () async {
+  test('MessagesReporter writes partial results of a real run', () async {
     final temporary = await Directory.systemTemp.createTemp('bdd-messages-');
     final directory = Directory(await temporary.resolveSymbolicLinks());
     addTearDown(() => directory.delete(recursive: true));
@@ -84,9 +84,11 @@ void main() {
 
     final result = await _runFixture('dart_runner_messages.dart',
         environment: {'BDD_MESSAGES_PATH': path});
-    expect(result.stdout, contains('Cucumber Messages saved in $path'));
+    expect(result.stdout, contains('Partial Cucumber Messages saved in $path.partial'));
+    expect(result.exitCode, isNot(0));
+    expect(File(path).existsSync(), isFalse);
 
-    final envelopes = File(path)
+    final envelopes = File('$path.partial')
         .readAsLinesSync()
         .map((line) => jsonDecode(line) as Map<String, dynamic>)
         .toList();
@@ -120,7 +122,19 @@ void main() {
       'Outline 1000': ['PASSED', 'PASSED', 'PASSED', 'FAILED'],
       'Skipped': ['SKIPPED', 'SKIPPED', 'SKIPPED'],
     });
-    expect(all('testRunFinished').single['success'], isFalse);
+    expect(all('testRunFinished'), isEmpty);
+    const markerPrefix = 'bdd_framework.messages.v1:';
+    final events = _events(result);
+    final markerEvent = events.singleWhere((event) =>
+        event['type'] == 'print' &&
+        event['message'].toString().startsWith(markerPrefix));
+    final marker = jsonDecode((markerEvent['message'] as String)
+        .substring(markerPrefix.length)) as Map<String, dynamic>;
+    expect(marker['id'], all('testRunStarted').single['id']);
+    final uri = File(path).absolute.uri.normalizePath().toString();
+    expect(marker['output'], Platform.isWindows ? uri.toLowerCase() : uri);
+    expect(events.last['type'], 'done');
+    expect(events.last['success'], isFalse);
   }, timeout: const Timeout(Duration(minutes: 2)));
 
   test('.only runs only the marked tests, and skips the others', () async {

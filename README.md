@@ -1006,8 +1006,10 @@ The **BDD Framework** package comes out of the box with 3 reporters:
   errors. Tools that read Cucumber Messages can use it. For example,
   <a href='https://github.com/cucumber/html-formatter'>Cucumber's HTML formatter</a> turns it into
   an HTML report.
-    * The default is to save the file as `./gen_messages/messages.ndjson`. Use the `path`
+    * The default final path is `./gen_messages/messages.ndjson`. Use the `path`
       parameter to choose another file: `MessagesReporter(path: './reports/messages.ndjson')`.
+      During tests it writes `path.partial`; the finalizer publishes `path` after the
+      test process exits. A partial has no `testRunFinished` message.
     * The file contains the same Gherkin the `FeatureFileReporter` writes, so the results are
       shown next to your scenarios.
     * The code you add to a step with `.code()` is that step's code: the step fails if its code
@@ -1019,13 +1021,14 @@ The **BDD Framework** package comes out of the box with 3 reporters:
       in `.code()`.
     * Each `Examples` row is a separate test case. Skipped BDDs, and the ones that didn't run
       because of `.only`, have all their steps skipped.
-    * These are observations of BDD bodies, **not the final test runner result**. Setup and
-      teardown may fail outside those bodies, and a timed-out body may finish later. The
-      Cucumber protocol has no unknown value for its required `success` boolean. Therefore
-      `testRunFinished.success` is always `false`, with a message starting
-      `Incomplete: final runner result unavailable`, even when all recorded steps passed.
-      Per-step results and retries are still shown. Use the runner's exit code to approve a
-      CI run; do not use this report as a suite-success signal.
+    * Per-step details describe BDD bodies. Setup/teardown failures and timeouts can occur
+      outside those bodies. The finalizer obtains the **global result of the complete test
+      command** from its public JSON reporter and exit status: confirmed success produces
+      `testRunFinished.success: true`; confirmed test failure produces `false`. This includes
+      non-BDD tests selected by that command. A failure outside a BDD step can therefore
+      coexist with passing step details; the finalizer does not invent a failing BDD step.
+      Unknown/interrupted results produce an error and no final report, never a fake failure
+      or success. Retries that eventually pass can correctly produce global success.
     * Invalid Gherkin, mismatched scenarios/steps/examples, serialization errors and output
       failures make `report()` throw. `reportAll()` propagates that failure through its
       teardown. No BDD is silently dropped. An existing regular output file must be removed
@@ -1039,8 +1042,11 @@ The **BDD Framework** package comes out of the box with 3 reporters:
       APIs cannot eliminate races against an attacker concurrently changing directories.
       If a trusted system directory uses an alias such as macOS `/var`, resolve that
       trusted directory with `Directory.resolveSymbolicLinks()` before choosing the file.
-      Use a separate output path for each test process; shared paths are not a coordination
-      mechanism. Do not upload a report after a test/export command fails.
+      Use a fresh private directory for each command and a separate output path for each
+      reporter/test process. Shared paths are not a coordination mechanism; duplicate
+      markers for the same output reject finalization. Do not upload a partial or a file
+      left over after an export/finalization error. A confirmed failed-test report is still
+      useful for diagnosis, but must not make CI pass.
     * Treat both NDJSON and derived HTML as sensitive test artifacts. They include scenario
       text, example/table values, error messages, stack traces and platform versions.
       Do not put real credentials or personal data in test descriptions or thrown errors;
@@ -1059,7 +1065,73 @@ The **BDD Framework** package comes out of the box with 3 reporters:
       bound report input/output; they do not cap arbitrary test callbacks or custom
       `toString()`/table formatting that runs before the reporter receives the text.
 
-  To turn the file into an HTML report, you can use Cucumber's HTML formatter for JavaScript.
+  **Finalize after the test process exits.** Configure your test entry point to use the
+  chosen per-run directory (with `dart:io` imported):
+
+  ```dart
+  final directory = Platform.environment['BDD_REPORT_DIR']!;
+  BddReporter.set(MessagesReporter(path: '$directory/messages.ndjson'));
+  // Register your BDDs, then call BddReporter.reportAll() as usual.
+  ```
+
+  In the commands below, `test/bdd_test.dart` is your entry point collecting the BDDs
+  for this report. If several test entry points each configure a reporter, run/finalize
+  each with a distinct directory instead of having all isolates overwrite one file.
+
+  Run the test command with a **dedicated file reporter**, not redirected console output.
+  The normal console reporter remains available. For example, in PowerShell:
+
+  ```powershell
+  $env:BDD_REPORT_DIR = Join-Path $PWD "gen_messages/run-$([Guid]::NewGuid())"
+  New-Item -ItemType Directory -Path $env:BDD_REPORT_DIR -ErrorAction Stop | Out-Null
+  flutter test test/bdd_test.dart "--file-reporter=json:$env:BDD_REPORT_DIR/runner.json"
+  $testExit = $LASTEXITCODE
+  dart run bdd_framework:finalize_messages "--messages=$env:BDD_REPORT_DIR/messages.ndjson" "--runner-json=$env:BDD_REPORT_DIR/runner.json" "--exit-code=$testExit"
+  $finalizeExit = $LASTEXITCODE
+  if ($testExit -ne 0) { exit $testExit }
+  exit $finalizeExit
+  ```
+
+  Or in a POSIX shell:
+
+  ```sh
+  mkdir -p gen_messages || exit 2
+  BDD_REPORT_DIR=$(mktemp -d "$PWD/gen_messages/run.XXXXXXXX") || exit 2
+  export BDD_REPORT_DIR
+  test_status=0
+  flutter test test/bdd_test.dart --file-reporter="json:$BDD_REPORT_DIR/runner.json" || test_status=$?
+  finalize_status=0
+  dart run bdd_framework:finalize_messages --messages="$BDD_REPORT_DIR/messages.ndjson" --runner-json="$BDD_REPORT_DIR/runner.json" --exit-code="$test_status" || finalize_status=$?
+  if [ "$test_status" -ne 0 ]; then exit "$test_status"; fi
+  exit "$finalize_status"
+  ```
+
+  For Dart tests, replace `flutter test` with `dart test`. Always run finalization after
+  waiting for the command, including when tests fail; do not connect the two commands with
+  `&&`. The finalizer exits with 0 for success, 1 for confirmed test failure, or 2 for an
+  incomplete/unsupported/inconsistent run or export error. It never starts a subprocess.
+  The equivalent API is `finalizeMessages(path: ..., runnerJsonPath: ..., testExitCode: ...)`
+  from `package:bdd_framework/messages.dart`; it returns a boolean for a confirmed result
+  and throws for an incomplete result.
+
+  The partial contains a random run ID also printed into the captured runner JSON. The
+  finalizer requires a matching ID and output path, one runner start and one conclusive
+  final `done` event, and a consistent process exit code. It validates case/step references
+  and consumes the partial even when validation fails. Re-running finalization requires
+  re-running the tests. Runner JSON and partial reads are limited to 64 MiB each; runner
+  JSON is limited to 1,000,000 events. Currently the public JSON protocol 0.1.x and normal
+  runner exit codes 0/1 are supported. Other exit codes, cancellation, missing events and
+  contradictions leave the outcome incomplete rather than guessing.
+
+  This guards against accidentally mixing runs and reusing the same partial. It does not
+  authenticate local files or the exit code supplied by your script, and cannot prevent
+  someone restoring copies of both matching artifacts. Keep these inputs trusted, pass the
+  actual status unchanged, and do not reuse directories. If the test process fails before
+  the reporter runs, a fresh directory also prevents an older report appearing current.
+  IDE runs without the file reporter produce only an intermediate snapshot; use the two
+  commands when you need a complete Cucumber report.
+
+  To turn the **finalized** file into an HTML report, use Cucumber's HTML formatter for JavaScript.
   For example, after `npm install --save-exact @cucumber/html-formatter @cucumber/message-streams`, create a
   `render.mjs` file:
 
@@ -1070,7 +1142,7 @@ The **BDD Framework** package comes out of the box with 3 reporters:
   import { NdjsonToMessageStream } from '@cucumber/message-streams'
 
   await pipeline(
-    fs.createReadStream('gen_messages/messages.ndjson', 'utf-8'),
+    fs.createReadStream(`${process.env.BDD_REPORT_DIR}/messages.ndjson`, 'utf-8'),
     new NdjsonToMessageStream(),
     new CucumberHtmlStream(),
     fs.createWriteStream('report.html', 'utf-8'),
@@ -1094,6 +1166,8 @@ The **BDD Framework** package comes out of the box with 3 reporters:
   The Cucumber dependencies and Dart 3.8 / Flutter 3.32 package requirements also apply to
   consumers who do not enable this reporter. Imports alone cannot make Pub dependencies
   optional; separating the reporter into an additional package would be a separate change.
+  The finalization command, partial-file IO and run markers apply only to MessagesReporter.
+  Other reporters and their existing execution commands do not use this extra step.
 
 <br>
 

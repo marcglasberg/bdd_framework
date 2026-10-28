@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:bdd_framework/dart_test.dart';
@@ -43,7 +44,6 @@ void main() {
         'testCaseStarted',
         for (var i = 0; i < 4; i++) ...['testStepStarted', 'testStepFinished'],
         'testCaseFinished',
-        'testRunFinished',
       ]);
 
       final meta = report.single((e) => e.meta);
@@ -71,10 +71,7 @@ void main() {
         'Adding an item #0: an empty cart=PASSED, I add an apple=PASSED, '
             'the cart has 1 item=PASSED, hook=PASSED',
       ]);
-      final finished = report.single((e) => e.testRunFinished);
-      expect(finished.success, isFalse);
-      expect(finished.message, contains('Incomplete'));
-      expect(finished.message, contains('final runner result unavailable'));
+      expect(report.all((e) => e.testRunFinished), isEmpty);
       report.expectConsistent();
     });
 
@@ -215,7 +212,7 @@ void main() {
       // is one, so it must start with the error.
       expect(result.exception!.stackTrace, result.message);
       expect(result.exception!.stackTrace, contains('messages_reporter_test'));
-      expect(report.single((e) => e.testRunFinished).success, isFalse);
+      expect(report.all((e) => e.testRunFinished), isEmpty);
     });
 
     test('a failing .run() callback fails the hook, not the steps', () async {
@@ -236,7 +233,7 @@ void main() {
       ]);
       expect(report.stepResults.single.last.message,
           startsWith('Expected: 1, Actual: 2'));
-      expect(report.single((e) => e.testRunFinished).success, isFalse);
+      expect(report.all((e) => e.testRunFinished), isEmpty);
     });
 
     test('a step with several code blocks fails if any of them fails',
@@ -325,7 +322,7 @@ void main() {
       ]);
       expect(report.stepResults.single.first.message,
           'The step did not finish. It may have timed out.');
-      expect(report.single((e) => e.testRunFinished).success, isFalse);
+      expect(report.all((e) => e.testRunFinished), isEmpty);
     });
   });
 
@@ -352,7 +349,7 @@ void main() {
         'Checking -1 #0: the number -1=PASSED, it is positive=PASSED, '
             'hook=FAILED',
       ]);
-      expect(report.single((e) => e.testRunFinished).success, isFalse);
+      expect(report.all((e) => e.testRunFinished), isEmpty);
       report.expectConsistent();
     });
 
@@ -382,7 +379,7 @@ void main() {
       );
       final started = report.all((e) => e.testCaseStarted).toList();
       expect(started[0].testCaseId, started[1].testCaseId);
-      expect(report.single((e) => e.testRunFinished).success, isFalse);
+      expect(report.all((e) => e.testRunFinished), isEmpty);
     });
 
     test('a skipped BDD has all its steps skipped', () async {
@@ -398,7 +395,7 @@ void main() {
         'Ran #0: c=PASSED, hook=PASSED',
         'Skipped #0: a=SKIPPED, b=SKIPPED, hook=SKIPPED',
       ]);
-      expect(report.single((e) => e.testRunFinished).success, isFalse);
+      expect(report.all((e) => e.testRunFinished), isEmpty);
       report.expectConsistent();
     });
 
@@ -443,7 +440,7 @@ void main() {
   });
 
   group('report()', () {
-    test('writes one message per line, creating the directories', () async {
+    test('writes one partial message per line, creating the directories', () async {
       final temporary = await Directory.systemTemp.createTemp('bdd-messages-');
       final directory = Directory(await temporary.resolveSymbolicLinks());
       addTearDown(() => directory.delete(recursive: true));
@@ -454,17 +451,58 @@ void main() {
       final feature = BddFeature('File output');
       await _run(Bdd(feature).scenario('Written').then('to a file').bdd);
 
-      final output = await captureStdout(reporter.report);
-      expect(output, contains('Cucumber Messages saved in $path'));
+      final printed = <String>[];
+      final output = await runZoned(
+        () => captureStdout(reporter.report),
+        zoneSpecification: ZoneSpecification(
+          print: (_, __, ___, line) => printed.add(line),
+        ),
+      );
+      expect(output, contains('Partial Cucumber Messages saved in $path.partial'));
+      expect(File(path).existsSync(), isFalse);
 
-      final lines = File(path).readAsLinesSync();
+      final lines = File('$path.partial').readAsLinesSync();
       final envelopes = lines.map(messages.parseEnvelopeJson).toList();
       expect(envelopes, hasLength(reporter.envelopes().length));
       expect(envelopes.first.meta, isNotNull);
-      expect(envelopes.last.testRunFinished, isNotNull);
+      expect(envelopes.last.testCaseFinished, isNotNull);
+      expect(envelopes.map((e) => e.testRunFinished).nonNulls, isEmpty);
+      final marker = _marker(printed);
+      expect(marker['id'], _Report(envelopes).single((e) => e.testRunStarted).id);
+      final uri = File(path).absolute.uri.normalizePath().toString();
+      expect(marker['output'], Platform.isWindows ? uri.toLowerCase() : uri);
       expect(_Report(envelopes).results, [
         'Written #0: to a file=PASSED, hook=PASSED',
       ]);
+    });
+
+    test('each export prints a fresh nonce only after publishing its partial',
+        () async {
+      final temporary = await Directory.systemTemp.createTemp('bdd-messages-');
+      final directory = Directory(await temporary.resolveSymbolicLinks());
+      addTearDown(() => directory.delete(recursive: true));
+      final path = '${directory.path}/messages.ndjson';
+      reporter = MessagesReporter(path: path);
+      BddReporter.set(reporter);
+      await _run(Bdd(BddFeature('Fresh nonce')).scenario('Passes').then('ok').bdd);
+      final ids = <String>[];
+      for (var i = 0; i < 2; i++) {
+        await runZoned(
+          () => captureStdout(reporter.report),
+          zoneSpecification: ZoneSpecification(print: (_, __, ___, line) {
+            final marker = _marker([line]);
+            final partial = File('$path.partial').readAsLinesSync()
+                .map(messages.parseEnvelopeJson).toList();
+            final id = _Report(partial).single((e) => e.testRunStarted).id!;
+            expect(marker['id'], id);
+            expect(id, matches(RegExp(r'^[0-9a-f]{64}$')));
+            expect(File(path).existsSync(), isFalse);
+            ids.add(id);
+          }),
+        );
+      }
+      expect(ids, hasLength(2));
+      expect(ids[0], isNot(ids[1]));
     });
 
     test('propagates failure when it cannot write the file', () async {
@@ -478,13 +516,15 @@ void main() {
       await expectLater(reporter.report(), throwsA(isA<FileSystemException>()));
     });
 
-    test('a serialization failure removes the previous report and propagates',
+    test('a serialization failure removes old partial and final reports',
         () async {
       final temporary = await Directory.systemTemp.createTemp('bdd-messages-');
       final directory = Directory(await temporary.resolveSymbolicLinks());
       addTearDown(() => directory.delete(recursive: true));
       final file = File('${directory.path}/messages.ndjson');
       file.writeAsStringSync('old report');
+      final partial = File('${file.path}.partial');
+      partial.writeAsStringSync('old partial report');
       reporter = MessagesReporter(path: file.path);
       BddReporter.set(reporter);
       final error = _UnprintableError();
@@ -495,8 +535,17 @@ void main() {
       error.throwOnPrint = true;
       await expectLater(reporter.report(), throwsStateError);
       expect(file.existsSync(), isFalse);
+      expect(partial.existsSync(), isFalse);
+      expect(await directory.list().toList(), isEmpty);
     });
   });
+}
+
+Map<String, dynamic> _marker(Iterable<String> printed) {
+  const prefix = 'bdd_framework.messages.v1:';
+  final markers = printed.where((line) => line.startsWith(prefix)).toList();
+  expect(markers, hasLength(1));
+  return jsonDecode(markers.single.substring(prefix.length)) as Map<String, dynamic>;
 }
 
 class _UnprintableError extends Error {
@@ -666,11 +715,10 @@ class _Report {
       if (envelope.testCaseFinished case final finished?) {
         expectDeclared(finished.testCaseStartedId);
       }
-      if (envelope.testRunFinished case final finished?) {
-        expectDeclared(finished.testRunStartedId);
-      }
     }
 
+    // The partial never declares a global result before runner finalization.
+    expect(all((e) => e.testRunFinished), isEmpty);
     // Every test case started is finished, and every step of it has a result.
     expect(all((e) => e.testCaseFinished), hasLength(all((e) => e.testCaseStarted).length));
     final testCases = _testCases;

@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:collection/collection.dart';
 import 'package:cucumber_messages/cucumber_messages.dart' as messages;
@@ -49,37 +51,65 @@ import 'messages_gherkin.dart';
 /// * A BDD that was skipped, or that didn't run (for example, because of
 ///   `.only`), is reported with all its steps skipped.
 ///
-/// This is a snapshot of BDD bodies, not the final result of the test runner.
-/// It cannot observe all setup/teardown failures or a timeout followed by a
-/// late completion. `testRunFinished` therefore has `success: false` and an
-/// explicit incomplete-result message even when all recorded steps passed.
-/// Use the test runner's exit status to decide whether the suite passed.
+/// [report] writes a partial snapshot to `path.partial`, without a
+/// `testRunFinished` message. Run the tests with `--file-reporter=json:...`,
+/// then use `dart run bdd_framework:finalize_messages` after the process exits
+/// to publish [path] with the actual runner result. See the README for commands.
+/// Setup/teardown failures and timeouts cannot be determined from BDD bodies
+/// alone. An interrupted or unverifiable run remains incomplete, not failed.
 ///
 /// Reports contain scenario data, errors and stack traces. Store them in a
 /// trusted private directory, redact sensitive test data before recording it,
 /// and review them before sharing. See the README for the output security
 /// policy and size limits.
 class MessagesReporter extends BddReporter {
-  /// Creates a reporter that writes the Cucumber Messages to the file at
-  /// [path]. The directories are created if needed.
+  /// Creates a reporter whose finalized Cucumber Messages will be at [path].
+  /// The intermediate file is `path.partial`. Directories are created as needed.
   MessagesReporter({this.path = './gen_messages/messages.ndjson'});
 
-  /// The path of the NDJSON file to write.
+  /// The path of the final NDJSON file, published by the finalizer.
   final String path;
 
   @override
   Future<void> report() async {
+    // Remove old final output even if generation or serialization fails.
+    await invalidateMessagesFile(path);
+    final runId = _newRunId();
     await writeMessagesFile(
-      path,
-      () => envelopes().map(messages.envelopeToJsonString),
+      '$path.partial',
+      () => _MessagesBuilder(
+        features.toList(),
+        normalizeFileName,
+        runId,
+      ).build().map(messages.envelopeToJsonString),
     );
-    stdout.writeln('Cucumber Messages saved in $path');
+    // print(), unlike stdout.writeln(), is captured by package:test's JSON
+    // reporter. This binds the partial to the execution that produced it.
+    final uri = File(path).absolute.uri.normalizePath().toString();
+    print(
+      'bdd_framework.messages.v1:${jsonEncode({'id': runId, 'output': Platform.isWindows ? uri.toLowerCase() : uri})}',
+    );
+    stdout.writeln(
+      'Partial Cucumber Messages saved in $path.partial; '
+      'finalize after the test process exits.',
+    );
   }
 
   /// The Cucumber Messages of all the BDDs this reporter got, in the order
-  /// they are written to the file.
-  List<messages.Envelope> envelopes() =>
-      _MessagesBuilder(features.toList(), normalizeFileName).build();
+  /// they are written to the partial file. No global result is declared here.
+  List<messages.Envelope> envelopes() => _MessagesBuilder(
+    features.toList(),
+    normalizeFileName,
+    _newRunId(),
+  ).build();
+}
+
+String _newRunId() {
+  final random = Random.secure();
+  return List.generate(
+    32,
+    (_) => random.nextInt(256).toRadixString(16).padLeft(2, '0'),
+  ).join();
 }
 
 /// The protocol version of the Cucumber Messages this reporter writes.
@@ -142,10 +172,11 @@ class _StepOutcome {
 }
 
 class _MessagesBuilder {
-  _MessagesBuilder(this.features, this.fileNameOf);
+  _MessagesBuilder(this.features, this.fileNameOf, this.runId);
 
   final List<BddFeature> features;
   final String Function(String title) fileNameOf;
+  final String runId;
 
   final List<messages.Envelope> _envelopes = [];
   final GherkinMessageBudget _gherkinBudget = GherkinMessageBudget();
@@ -192,7 +223,7 @@ class _MessagesBuilder {
     }
     runs.sort((a, b) => a.$2.startedAt.compareTo(b.$2.startedAt));
 
-    final testRunStartedId = _id();
+    final testRunStartedId = runId;
     var clock = runs.isEmpty ? DateTime.now() : runs.first.$2.startedAt;
     _add(messages.Envelope(
       testRunStarted: messages.TestRunStarted(
@@ -226,13 +257,10 @@ class _MessagesBuilder {
       ));
     }
 
-    var observedFailure = false;
-
     for (final (plan, execution) in runs) {
       final willBeRetried = plan.lastAttempt > execution.attempt;
-      final (finishedAt, failed) =
+      final (finishedAt, _) =
           _reportRun(plan, execution, willBeRetried: willBeRetried);
-      if (failed && !willBeRetried) observedFailure = true;
       if (finishedAt.isAfter(clock)) clock = finishedAt;
     }
 
@@ -240,21 +268,6 @@ class _MessagesBuilder {
     for (final plan in plans.where((plan) => plan.executions.isEmpty)) {
       _reportSkipped(plan, clock);
     }
-
-    _add(messages.Envelope(
-      testRunFinished: messages.TestRunFinished(
-        // The public test APIs cannot establish the final suite outcome here:
-        // hooks may fail outside the BDD, including after this report is made.
-        // The protocol has no unknown boolean, so never claim global success.
-        success: false,
-        message: 'Incomplete: final runner result unavailable. '
-            '${observedFailure ? 'A recorded BDD body failed or did not finish. ' : ''}'
-            'This report covers BDD bodies only; setup, teardown and timeout '
-            'outcomes must be checked in the test runner result.',
-        timestamp: messages.dateTimeToTimestamp(clock),
-        testRunStartedId: testRunStartedId,
-      ),
-    ));
 
     return _envelopes;
   }

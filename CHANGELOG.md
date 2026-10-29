@@ -11,8 +11,7 @@ Sponsored by [MyText.ai](https://mytext.ai)
   an HTML report of each test run with
   [Cucumber's HTML formatter](https://github.com/cucumber/html-formatter), or
   to send the results to other tools that understand Cucumber. See its
-  documentation for how to use it
-  ([#17](https://github.com/marcglasberg/bdd_framework/issues/17)).
+  documentation for how to use it ([#17](https://github.com/marcglasberg/bdd_framework/issues/17)).
 
 * The results report is created in two steps. While the tests run, the
   reporter writes `results.ndjson.partial`. After the test command exits,
@@ -44,13 +43,11 @@ Sponsored by [MyText.ai](https://mytext.ai)
   in Jest. The other BDDs in the same test file are skipped, unless they are
   also marked with `.only`. It works with the Dart, Flutter and Flutter widget
   runners. Since it's meant to be temporary, the analyzer warns about it, as a
-  reminder to remove it before committing
-  ([#3](https://github.com/marcglasberg/bdd_framework/issues/3)).
+  reminder to remove it before committing ([#3](https://github.com/marcglasberg/bdd_framework/issues/3)).
 
 ## 5.0.3
 
-* Exported feature files are now always valid Gherkin
-  ([#18](https://github.com/marcglasberg/bdd_framework/issues/18),
+* Exported feature files are now always valid Gherkin ([#18](https://github.com/marcglasberg/bdd_framework/issues/18),
   [#19](https://github.com/marcglasberg/bdd_framework/issues/19),
   [#20](https://github.com/marcglasberg/bdd_framework/issues/20)):
     * A `|` in a table or `Examples` cell is written as `\|`, and a line break
@@ -61,7 +58,7 @@ Sponsored by [MyText.ai](https://mytext.ai)
     * Each line of a multi-line `note()` becomes its own `#` comment.
     * A feature title with a line break no longer makes the `.feature` file
       fail to be created.
-  The console output uses the same formatting, so it changes the same way.
+      The console output uses the same formatting, so it changes the same way.
 
 * In widget tests (`flutter_widget_test.dart`), an error Flutter reports
   without throwing it, like a layout overflow when

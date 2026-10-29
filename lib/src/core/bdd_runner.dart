@@ -186,26 +186,35 @@ class BddRunner {
             ? "${_header(bdd._skip, _testCountStr)}$blue$bddStr$boldOff"
             : "\n${red}Retry $currentExecution.\n$boldOff");
 
+        // Record this run, so reporters can show the result of each step.
+        final execution = BddExecution._(
+          exampleIndex: exampleNumber,
+          attempt: currentExecution,
+          startedAt: DateTime.now(),
+        );
+        bdd._executions.add(execution);
+        final stopwatch = Stopwatch()..start();
+
         try {
           // 1) Execute background setups if present.
           BddFramework? backgroundOption = bdd.feature?.backgroundFramework;
           if (backgroundOption != null) {
-            for (CodeRun codeRun in backgroundOption.codeTerms
-                .map((BddCodeTerm codeTerm) => codeTerm.codeRun)) {
-              await codeRun.call(ctx);
+            for (BddCodeTerm codeTerm in backgroundOption.codeTerms) {
+              await execution._run(codeTerm, codeTerm.codeRun, ctx);
             }
           }
 
           // 2) Sequentially execute all code blocks registered for this BDD scenario.
-          for (CodeRun codeRun in bdd.codeTerms
-              .map((BddCodeTerm codeTerm) => codeTerm.codeRun)) {
-            await codeRun.call(ctx);
+          for (BddCodeTerm codeTerm in bdd.codeTerms) {
+            await execution._run(codeTerm, codeTerm.codeRun, ctx);
           }
 
           for (CodeRun codeRun in bdd.codeRuns) {
-            await codeRun.call(ctx);
+            await execution._run(null, codeRun, ctx);
           }
         } catch (error, stacktrace) {
+          execution._finish(stopwatch.elapsed, error, stacktrace);
+
           // Mark as failed and report.
           bdd.passed.add(false);
           BddReporter.runInfo.failedCount++;
@@ -226,6 +235,8 @@ class BddRunner {
           }
           return;
         }
+
+        execution._finish(stopwatch.elapsed);
 
         // Mark as passed.
         bdd.passed.add(true);

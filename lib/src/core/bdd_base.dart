@@ -12,6 +12,7 @@ part 'bdd_runner.dart';
 
 part 'bdd_feature.dart';
 part 'bdd_background.dart';
+part 'bdd_execution.dart';
 part 'bdd_feature_description.dart';
 part 'bdd_example.dart';
 part 'bdd_scenario.dart';
@@ -295,6 +296,10 @@ abstract class BddTerm extends _BaseTerm {
 
   BddTerm(BddFramework bdd, this.text, this.variation) : super(bdd);
 
+  /// Whether this term is a note, added with `.note()`. Notes are exported as
+  /// Gherkin comments, not as steps.
+  bool get isNote => variation == _Variation.note;
+
   String spaces(BddConfig config);
 
   String keyword(BddConfig config);
@@ -437,6 +442,11 @@ class BddFramework {
   /// True means it passed.
   /// False means it did not pass.
   List<bool> passed;
+
+  final List<BddExecution> _executions = [];
+
+  /// Each run of this BDD, in the order they started. See [BddExecution].
+  List<BddExecution> get executions => List.unmodifiable(_executions);
 
   BddFramework([this.feature])
       : terms = [],
@@ -1261,6 +1271,10 @@ class TestResult {
   /// False values means it did not pass.
   ///
   List<bool> get passed => _bdd.passed;
+
+  /// Each run of the BDD, with the result of each code block.
+  /// See [BddExecution].
+  List<BddExecution> get executions => _bdd.executions;
 }
 
 /// Example:

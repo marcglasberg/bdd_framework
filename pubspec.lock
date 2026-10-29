@@ -98,7 +98,7 @@ packages:
     source: hosted
     version: "3.0.7"
   cucumber_gherkin:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: cucumber_gherkin
       sha256: "64d7801d0b25ddb5b9129434dff2290d92b8c31a3809e50c6c7bfe8da8a37af4"
@@ -106,7 +106,7 @@ packages:
     source: hosted
     version: "42.0.1"
   cucumber_messages:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: cucumber_messages
       sha256: d4ee7dfe53da26d5748d08dd64c28e234ad1f6a6833ffa99dd4c7a847e77e196

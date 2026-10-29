@@ -11,14 +11,16 @@ topics:
   - project-management
 
 environment:
-  sdk: '>=3.5.0 <4.0.0'
-  flutter: ">=3.0.0"
+  sdk: '>=3.8.0 <4.0.0'
+  flutter: ">=3.32.0"
 
 dependencies:
   flutter:
     sdk: flutter
   characters: ^1.4.0
   collection: ^1.15.0
+  cucumber_gherkin: ^42.0.1
+  cucumber_messages: ^34.2.1
   meta: ^1.16.0
   flutter_test:
     sdk: flutter
@@ -26,5 +28,3 @@ dependencies:
   test: ^1.24.0
 dev_dependencies:
   flutter_lints: ^6.0.0
-  cucumber_gherkin: ^42.0.1
-  cucumber_messages: ^34.2.1

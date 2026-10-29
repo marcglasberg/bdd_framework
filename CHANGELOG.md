@@ -2,6 +2,37 @@ Sponsored by [MyText.ai](https://mytext.ai)
 
 [![](https://raw.githubusercontent.com/marcglasberg/bdd_framework/master/example/SponsoredByMyTextAi.png)](https://mytext.ai)
 
+## Unreleased
+
+* Messages reports use two-stage publication: tests write a `.partial`, then the optional
+  `finalize_messages` command combines it with the runner's dedicated JSON log and actual
+  exit code. Completed reports have a truthful global success/failure result; interrupted
+  or unverifiable runs remain incomplete. Random run IDs bind the files, and partials are
+  consumed once. This finalization does not change other reporters or shared runners.
+  Invalid/incomplete mappings
+  and export errors now throw instead of silently omitting tests or retaining stale output.
+  Report publication rejects links in output paths and uses a flushed temporary file and
+  rename. Examples use bounded, single-pass substitution without expanding inserted values.
+  See the README for limits, private-directory requirements and sensitive-artifact handling.
+
+* `MessagesReporter()` writes the results as
+  [Cucumber Messages](https://github.com/cucumber/messages), into an NDJSON
+  file. It has the Gherkin of each feature, and the result of each run of
+  each scenario: which steps passed, failed or were skipped, how long each step
+  took, and the errors. Tools that read Cucumber Messages can use it, like
+  [Cucumber's HTML formatter](https://github.com/cucumber/html-formatter),
+  which turns it into an HTML report. See the README for how to use it
+  ([#17](https://github.com/marcglasberg/bdd_framework/issues/17)).
+
+* Each run of a BDD is now recorded, with the result, duration and error of
+  each code block that ran. Reporters can read it from
+  `TestResult.executions` (or `BddFramework.executions`). See `BddExecution`.
+
+* `BddTerm.isNote` tells if a term is a note, added with `.note()`.
+
+* Requires Dart 3.8 (Flutter 3.32), since `cucumber_gherkin` and
+  `cucumber_messages` are now dependencies.
+
 ## 5.1.0
 
 * `Bdd(feature).only` runs only that BDD while you work on it, like `test.only`

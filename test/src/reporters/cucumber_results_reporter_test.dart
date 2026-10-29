@@ -10,10 +10,10 @@ import 'gherkin_support.dart';
 import 'stdout_capture.dart';
 
 void main() {
-  late MessagesReporter reporter;
+  late CucumberResultsReporter reporter;
 
   setUp(() {
-    reporter = MessagesReporter();
+    reporter = CucumberResultsReporter();
     BddReporter.set(reporter);
   });
 
@@ -211,7 +211,7 @@ void main() {
       // Tools like the HTML formatter show only the stack trace, when there
       // is one, so it must start with the error.
       expect(result.exception!.stackTrace, result.message);
-      expect(result.exception!.stackTrace, contains('messages_reporter_test'));
+      expect(result.exception!.stackTrace, contains('cucumber_results_reporter_test'));
       expect(report.all((e) => e.testRunFinished), isEmpty);
     });
 
@@ -444,8 +444,8 @@ void main() {
       final temporary = await Directory.systemTemp.createTemp('bdd-messages-');
       final directory = Directory(await temporary.resolveSymbolicLinks());
       addTearDown(() => directory.delete(recursive: true));
-      final path = '${directory.path}/nested/dir/messages.ndjson';
-      reporter = MessagesReporter(path: path);
+      final path = '${directory.path}/nested/dir/results.ndjson';
+      reporter = CucumberResultsReporter(path: path);
       BddReporter.set(reporter);
 
       final feature = BddFeature('File output');
@@ -458,7 +458,7 @@ void main() {
           print: (_, __, ___, line) => printed.add(line),
         ),
       );
-      expect(output, contains('Partial Cucumber Messages saved in $path.partial'));
+      expect(output, contains('Partial Cucumber results saved in $path.partial'));
       expect(File(path).existsSync(), isFalse);
 
       final lines = File('$path.partial').readAsLinesSync();
@@ -481,8 +481,8 @@ void main() {
       final temporary = await Directory.systemTemp.createTemp('bdd-messages-');
       final directory = Directory(await temporary.resolveSymbolicLinks());
       addTearDown(() => directory.delete(recursive: true));
-      final path = '${directory.path}/messages.ndjson';
-      reporter = MessagesReporter(path: path);
+      final path = '${directory.path}/results.ndjson';
+      reporter = CucumberResultsReporter(path: path);
       BddReporter.set(reporter);
       await _run(Bdd(BddFeature('Fresh nonce')).scenario('Passes').then('ok').bdd);
       final ids = <String>[];
@@ -510,7 +510,7 @@ void main() {
       final directory = Directory(await temporary.resolveSymbolicLinks());
       addTearDown(() => directory.delete(recursive: true));
       // A directory can't be opened as a file.
-      reporter = MessagesReporter(path: directory.path);
+      reporter = CucumberResultsReporter(path: directory.path);
       BddReporter.set(reporter);
 
       await expectLater(reporter.report(), throwsA(isA<FileSystemException>()));
@@ -521,11 +521,11 @@ void main() {
       final temporary = await Directory.systemTemp.createTemp('bdd-messages-');
       final directory = Directory(await temporary.resolveSymbolicLinks());
       addTearDown(() => directory.delete(recursive: true));
-      final file = File('${directory.path}/messages.ndjson');
+      final file = File('${directory.path}/results.ndjson');
       file.writeAsStringSync('old report');
       final partial = File('${file.path}.partial');
       partial.writeAsStringSync('old partial report');
-      reporter = MessagesReporter(path: file.path);
+      reporter = CucumberResultsReporter(path: file.path);
       BddReporter.set(reporter);
       final error = _UnprintableError();
       await _run(

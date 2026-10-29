@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:bdd_framework/messages.dart';
+import 'package:bdd_framework/cucumber_results.dart';
 import 'package:test/test.dart';
 
 const _markerPrefix = 'bdd_framework.messages.v1:';
@@ -25,7 +25,7 @@ void main() {
         () async {
           final directory = await _temporaryDirectory();
           addTearDown(() => directory.delete(recursive: true));
-          final file = File('${directory.path}/messages.ndjson');
+          final file = File('${directory.path}/results.ndjson');
           final partial = File('${file.path}.partial');
           final runnerJson = File('${directory.path}/runner.json');
           file.writeAsStringSync('old report must not survive a new run');
@@ -111,7 +111,7 @@ void main() {
             expect(failureIndex, greaterThan(events.indexOf(markers.single)));
           }
 
-          final success = await finalizeMessages(
+          final success = await finalizeCucumberResults(
             path: file.path,
             runnerJsonPath: runnerJson.path,
             testExitCode: result.exitCode,
@@ -140,7 +140,7 @@ void main() {
       () async {
         final directory = await _temporaryDirectory();
         addTearDown(() => directory.delete(recursive: true));
-        final file = File('${directory.path}/messages.ndjson');
+        final file = File('${directory.path}/results.ndjson');
         final partial = File('${file.path}.partial');
         final runnerJson = File('${directory.path}/runner.json');
         file.writeAsStringSync('{"testRunFinished":{"success":true}}\n');
@@ -163,7 +163,7 @@ void main() {
           );
         }
         await expectLater(
-          finalizeMessages(
+          finalizeCucumberResults(
             path: file.path,
             runnerJsonPath: runnerJson.path,
             testExitCode: result.exitCode,
@@ -225,14 +225,14 @@ Future<ProcessResult> _runFixture(
       '--reporter=expanded',
       '--file-reporter=json:$runnerJsonPath',
       '--concurrency=1',
-      'test/fixtures/${flutter ? 'flutter' : 'dart'}_runner_messages_lifecycle.dart',
+      'test/fixtures/${flutter ? 'flutter' : 'dart'}_runner_cucumber_results_lifecycle.dart',
     ],
     environment: {
       'DART_SUPPRESS_ANALYTICS': 'true',
       'FLUTTER_SUPPRESS_ANALYTICS': 'true',
       'CI': 'true',
-      'BDD_MESSAGES_CASE': mode,
-      'BDD_MESSAGES_PATH': path,
+      'BDD_RESULTS_CASE': mode,
+      'BDD_RESULTS_PATH': path,
     },
     runInShell: flutter && Platform.isWindows,
     stdoutEncoding: utf8,

@@ -1,4 +1,4 @@
-import 'package:bdd_framework/src/reporters/messages_gherkin.dart';
+import 'package:bdd_framework/src/reporters/cucumber_results_reporter.dart';
 import 'package:cucumber_gherkin/cucumber_gherkin.dart' as gherkin;
 import 'package:cucumber_messages/cucumber_messages.dart' as messages;
 import 'package:test/test.dart';

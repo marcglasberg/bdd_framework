@@ -1,4 +1,4 @@
-// Synthetic lifecycle cases launched by messages_reporter_lifecycle_process_test.
+// Synthetic lifecycle cases launched by cucumber_results_reporter_lifecycle_process_test.
 // Intentionally failing cases are excluded from normal test discovery.
 import 'dart:async';
 import 'dart:io';
@@ -7,7 +7,7 @@ import 'package:bdd_framework/dart_test.dart';
 import 'package:test/test.dart';
 
 void main() {
-  final mode = Platform.environment['BDD_MESSAGES_CASE']!;
+  final mode = Platform.environment['BDD_RESULTS_CASE']!;
   if (!const {
     'passing',
     'body-failure',
@@ -23,7 +23,7 @@ void main() {
   }
 
   BddReporter.set(
-    MessagesReporter(path: Platform.environment['BDD_MESSAGES_PATH']!),
+    CucumberResultsReporter(path: Platform.environment['BDD_RESULTS_PATH']!),
   );
   if (mode == 'setup') {
     setUp(() => throw StateError('synthetic setup failure'));

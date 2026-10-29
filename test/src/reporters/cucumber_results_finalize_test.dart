@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:bdd_framework/cucumber_results.dart';
 import 'package:bdd_framework/dart_test.dart';
-import 'package:bdd_framework/messages.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -11,15 +11,15 @@ void main() {
   late File output;
   late File partial;
   late File runner;
-  late MessagesReporter reporter;
+  late CucumberResultsReporter reporter;
 
   setUp(() async {
     final temporary = await Directory.systemTemp.createTemp('bdd-finalize-');
     directory = Directory(await temporary.resolveSymbolicLinks());
-    output = File('${directory.path}/messages.ndjson');
+    output = File('${directory.path}/results.ndjson');
     partial = File('${output.path}.partial');
     runner = File('${directory.path}/runner.json');
-    reporter = MessagesReporter(path: output.path);
+    reporter = CucumberResultsReporter(path: output.path);
     BddReporter.set(reporter);
   });
   tearDown(() async {
@@ -57,7 +57,7 @@ void main() {
     );
   }
 
-  Future<bool> finalize([int code = 0]) => finalizeMessages(
+  Future<bool> finalize([int code = 0]) => finalizeCucumberResults(
     path: output.path,
     runnerJsonPath: runner.path,
     testExitCode: code,
@@ -67,8 +67,8 @@ void main() {
     _dartExecutable(),
     [
       '--packages=${File('.dart_tool/package_config.json').absolute.path}',
-      'bin/finalize_messages.dart',
-      '--messages=${output.path}',
+      'bin/finalize_cucumber_results.dart',
+      '--results=${output.path}',
       '--runner-json=${runner.path}',
       '--exit-code=$code',
     ],
@@ -284,9 +284,9 @@ void main() {
   test('input alias is rejected before removing any data', () async {
     await prepare();
     await expectLater(
-      finalizeMessages(
+      finalizeCucumberResults(
         path: output.path,
-        runnerJsonPath: '${directory.path}/./messages.ndjson.partial',
+        runnerJsonPath: '${directory.path}/./results.ndjson.partial',
         testExitCode: 0,
       ),
       throwsArgumentError,

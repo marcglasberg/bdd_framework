@@ -5,9 +5,9 @@ import 'package:cucumber_messages/cucumber_messages.dart' as messages;
 import 'package:test/test.dart';
 
 void main() {
-  late MessagesReporter reporter;
+  late CucumberResultsReporter reporter;
   setUp(() {
-    reporter = MessagesReporter();
+    reporter = CucumberResultsReporter();
     BddReporter.set(reporter);
   });
   tearDown(() => BddReporter.set());

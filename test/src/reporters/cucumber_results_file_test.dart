@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:bdd_framework/src/reporters/messages_file.dart';
+import 'package:bdd_framework/src/reporters/cucumber_results_reporter.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -15,7 +15,7 @@ void main() {
     );
     // On macOS, the system temp path can itself contain a /var symlink.
     directory = Directory(await temporary.resolveSymbolicLinks());
-    destination = File('${directory.path}/messages.ndjson');
+    destination = File('${directory.path}/results.ndjson');
   });
   tearDown(() async {
     await directory.delete(recursive: true);
@@ -155,7 +155,7 @@ void main() {
   });
 
   test('creates parents and publishes complete UTF-8 lines', () async {
-    final nested = File('${directory.path}/nested/reports/messages.ndjson');
+    final nested = File('${directory.path}/nested/reports/results.ndjson');
     await writeMessagesFile(nested.path, () => ['{"value":"é"}', '{}']);
     expect(await nested.readAsString(), '{"value":"é"}\n{}\n');
     expect(await nested.parent.list().map((e) => e.uri).toList(), [nested.uri]);
@@ -336,12 +336,12 @@ void main() {
 
   test('rejects a directory link or junction ancestor', () async {
     final target = await Directory('${directory.path}/target').create();
-    final sentinel = File('${target.path}/messages.ndjson');
+    final sentinel = File('${target.path}/results.ndjson');
     await sentinel.writeAsString('keep');
     final link = Link('${directory.path}/linked-parent');
     if (!await _createLink(link, target.path)) return;
     await expectLater(
-      writeMessagesFile('${link.path}/messages.ndjson', () => ['report']),
+      writeMessagesFile('${link.path}/results.ndjson', () => ['report']),
       throwsA(isA<FileSystemException>()),
     );
     expect(await sentinel.readAsString(), 'keep');
@@ -354,7 +354,7 @@ void main() {
     if (!await _createLink(link, target.path)) return;
     await destination.writeAsString('keep');
     await expectLater(
-      writeMessagesFile('${link.path}/../messages.ndjson', () => ['report']),
+      writeMessagesFile('${link.path}/../results.ndjson', () => ['report']),
       throwsA(isA<FileSystemException>()),
     );
     expect(await destination.readAsString(), 'keep');
@@ -365,7 +365,7 @@ void main() {
     for (final name in [
       'NUL',
       'CON.txt',
-      'messages.ndjson:stream',
+      'results.ndjson:stream',
       'report.',
     ]) {
       await expectLater(

@@ -2,27 +2,32 @@ Sponsored by [MyText.ai](https://mytext.ai)
 
 [![](https://raw.githubusercontent.com/marcglasberg/bdd_framework/master/example/SponsoredByMyTextAi.png)](https://mytext.ai)
 
-## Unreleased
+## 5.2.0
 
-* Messages reports use two-stage publication: tests write a `.partial`, then the optional
-  `finalize_messages` command combines it with the runner's dedicated JSON log and actual
-  exit code. Completed reports have a truthful global success/failure result; interrupted
-  or unverifiable runs remain incomplete. Random run IDs bind the files, and partials are
-  consumed once. This finalization does not change other reporters or shared runners.
-  Invalid/incomplete mappings
-  and export errors now throw instead of silently omitting tests or retaining stale output.
-  Report publication rejects links in output paths and uses a flushed temporary file and
-  rename. Examples use bounded, single-pass substitution without expanding inserted values.
-  See the README for limits, private-directory requirements and sensitive-artifact handling.
-
-* `MessagesReporter()` writes the results as
-  [Cucumber Messages](https://github.com/cucumber/messages), into an NDJSON
-  file. It has the Gherkin of each feature, and the result of each run of
-  each scenario: which steps passed, failed or were skipped, how long each step
-  took, and the errors. Tools that read Cucumber Messages can use it, like
-  [Cucumber's HTML formatter](https://github.com/cucumber/html-formatter),
-  which turns it into an HTML report. See the README for how to use it
+* `CucumberResultsReporter()` writes the results of your BDDs (which scenarios
+  and steps passed, failed or were skipped, how long they took, and the errors)
+  in Cucumber's standard results format,
+  [Cucumber Messages](https://github.com/cucumber/messages). Use it to create
+  an HTML report of each test run with
+  [Cucumber's HTML formatter](https://github.com/cucumber/html-formatter), or
+  to send the results to other tools that understand Cucumber. See its
+  documentation for how to use it
   ([#17](https://github.com/marcglasberg/bdd_framework/issues/17)).
+
+* The results report is created in two steps. While the tests run, the
+  reporter writes `results.ndjson.partial`. After the test command exits,
+  `dart run bdd_framework:finalize_cucumber_results` combines it with the test
+  runner's JSON output and exit code, and writes the final `results.ndjson`
+  with the real result of the whole run. Interrupted or inconsistent runs
+  produce an error instead of a report. Other reporters don't need this step.
+
+* The report fails with an error, instead of silently leaving tests out or
+  keeping an old report, when the Gherkin is invalid, steps or examples don't
+  match, or the file can't be written. Output paths that are links are
+  rejected, and the report is written to a temporary file and then renamed, so
+  a half-written report is never left behind. Report sizes are limited. See the
+  `CucumberResultsReporter` documentation for the limits, and for how to handle
+  reports that contain sensitive test data.
 
 * Each run of a BDD is now recorded, with the result, duration and error of
   each code block that ran. Reporters can read it from

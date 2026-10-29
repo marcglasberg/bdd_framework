@@ -76,15 +76,15 @@ void main() {
         ]));
   }, timeout: const Timeout(Duration(minutes: 2)));
 
-  test('MessagesReporter writes partial results of a real run', () async {
+  test('CucumberResultsReporter writes partial results of a real run', () async {
     final temporary = await Directory.systemTemp.createTemp('bdd-messages-');
     final directory = Directory(await temporary.resolveSymbolicLinks());
     addTearDown(() => directory.delete(recursive: true));
-    final path = '${directory.path}/messages.ndjson';
+    final path = '${directory.path}/results.ndjson';
 
-    final result = await _runFixture('dart_runner_messages.dart',
-        environment: {'BDD_MESSAGES_PATH': path});
-    expect(result.stdout, contains('Partial Cucumber Messages saved in $path.partial'));
+    final result = await _runFixture('dart_runner_cucumber_results.dart',
+        environment: {'BDD_RESULTS_PATH': path});
+    expect(result.stdout, contains('Partial Cucumber results saved in $path.partial'));
     expect(result.exitCode, isNot(0));
     expect(File(path).existsSync(), isFalse);
 

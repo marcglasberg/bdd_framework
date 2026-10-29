@@ -12,6 +12,11 @@ part of 'bdd_base.dart';
 /// Setup/teardown errors outside that code are not recorded, and a future may
 /// complete after the runner has already timed out the test. Use the runner's
 /// result, rather than [passed], to determine whether the whole test passed.
+///
+/// Runs are recorded even when no reporter uses them: one record per attempt
+/// and code block, with timestamps, durations, errors and stack traces. They
+/// use memory in proportion to the number of attempts and code blocks, and
+/// are only written to a file if a reporter, like `CucumberResultsReporter`, does so.
 class BddExecution {
   BddExecution._({
     required this.exampleIndex,

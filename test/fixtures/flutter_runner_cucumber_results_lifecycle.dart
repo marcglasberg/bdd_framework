@@ -1,4 +1,4 @@
-// Real Flutter runner cases for two-stage MessagesReporter finalization.
+// Real Flutter runner cases for two-stage CucumberResultsReporter finalization.
 // This fixture is launched explicitly and excluded from normal discovery.
 import 'dart:io';
 
@@ -6,12 +6,12 @@ import 'package:bdd_framework/flutter_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  final mode = Platform.environment['BDD_MESSAGES_CASE']!;
+  final mode = Platform.environment['BDD_RESULTS_CASE']!;
   if (mode != 'passing' && mode != 'teardown') {
     throw ArgumentError('Unknown Flutter lifecycle fixture: $mode');
   }
   BddReporter.set(
-    MessagesReporter(path: Platform.environment['BDD_MESSAGES_PATH']!),
+    CucumberResultsReporter(path: Platform.environment['BDD_RESULTS_PATH']!),
   );
   if (mode == 'teardown') {
     tearDown(() => throw StateError('synthetic Flutter teardown failure'));

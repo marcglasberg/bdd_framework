@@ -1,13 +1,13 @@
 import 'dart:convert';
 
-import 'package:bdd_framework/src/reporters/messages_runner_result.dart';
+import 'package:bdd_framework/src/reporters/cucumber_results_reporter.dart';
 import 'package:test/test.dart';
 
 const _runId =
     '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 const _otherId =
     'abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789';
-const _output = 'file:///c:/reports/messages.ndjson';
+const _output = 'file:///c:/reports/results.ndjson';
 const _otherOutput = 'file:///c:/reports/other.ndjson';
 const _prefix = 'bdd_framework.messages.v1:';
 

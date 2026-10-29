@@ -3,11 +3,11 @@ import 'dart:io';
 import 'package:bdd_framework/dart_test.dart';
 import 'package:test/test.dart';
 
-/// Writes Cucumber Messages to the file in the `BDD_MESSAGES_PATH`
+/// Writes Cucumber Messages to the file in the `BDD_RESULTS_PATH`
 /// environment variable, from a real `package:test` run.
 void main() {
   BddReporter.set(
-      MessagesReporter(path: Platform.environment['BDD_MESSAGES_PATH']!));
+      CucumberResultsReporter(path: Platform.environment['BDD_RESULTS_PATH']!));
 
   final feature = BddFeature('Messages from a real run');
   feature.background.given('a background').code((_) {});

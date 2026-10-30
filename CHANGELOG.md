@@ -2,7 +2,7 @@ Sponsored by [MyText.ai](https://mytext.ai)
 
 [![](https://raw.githubusercontent.com/marcglasberg/bdd_framework/master/example/SponsoredByMyTextAi.png)](https://mytext.ai)
 
-## 5.2.0
+## 5.2.1
 
 * `CucumberResultsReporter()` writes the results of your BDDs (which scenarios
   and steps passed, failed or were skipped, how long they took, and the errors)

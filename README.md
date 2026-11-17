@@ -10,7 +10,7 @@
 
 #### Sponsor
 
-[![](https://raw.githubusercontent.com/marcglasberg/bdd_framework/master/example/SponsoredByMyTextAi.png)](https://mytext.ai)
+[![](https://raw.githubusercontent.com/marcglasberg/bdd_framework/master/example/SponsoredByMyTextAi.jpg)](https://mytext.ai)
 
 # BDD Framework
 
@@ -1183,4 +1183,4 @@ _stackoverflow.com/users/3411681/marcg_</a>
 * <a href="https://medium.com/flutter-community/the-new-way-to-create-themes-in-your-flutter-app-7fdfc4f3df5f">
   The New Way to create Themes in your Flutter App</a> 
 
-[![](https://raw.githubusercontent.com/marcglasberg/bdd_framework/master/example/SponsoredByMyTextAi.png)](https://mytext.ai)
+[![](https://raw.githubusercontent.com/marcglasberg/bdd_framework/master/example/SponsoredByMyTextAi.jpg)](https://mytext.ai)

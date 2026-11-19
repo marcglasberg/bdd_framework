@@ -99,7 +99,7 @@ class Portfolio {
     required int quantity,
     required double averagePrice,
   }) {
-    stocks.removeWhere((var stock) => stock.ticker == ticker);
+    stocks.removeWhere((stock) => stock.ticker == ticker);
 
     if (quantity > 0) {
       var newStock = Stock(
@@ -115,7 +115,7 @@ class Portfolio {
   }
 
   Stock? getStock(String ticker) =>
-      stocks.firstWhereOrNull((var stock) => stock.ticker == ticker);
+      stocks.firstWhereOrNull((stock) => stock.ticker == ticker);
 
   /// Returns true if the portfolio contains the given stock.
   bool hasStock(AvailableStock availableStock) =>

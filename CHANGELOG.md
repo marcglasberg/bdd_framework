@@ -2,6 +2,10 @@ Sponsored by [MyText.ai](https://mytext.ai)
 
 [![](https://raw.githubusercontent.com/marcglasberg/bdd_framework/master/example/SponsoredByMyTextAi.jpg)](https://mytext.ai)
 
+## 5.2.3
+
+* Migrate the example and widget-runner test fixtures to the standalone Material package for Flutter 3.50. The Dart and Flutter business-test runners are unchanged.
+
 ## 5.2.2
 
 * `CucumberResultsReporter()` writes the results of your BDDs (which scenarios
